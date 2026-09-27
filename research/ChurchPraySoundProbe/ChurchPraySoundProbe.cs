@@ -389,11 +389,11 @@ namespace KeepersAlertsResearch
 
         private static string Quote(string value)
         {
-            return """ + (value ?? string.Empty)
+            return "\"" + (value ?? string.Empty)
                 .Replace("\\", "\\\\")
-                .Replace(""", "\\"")
+                .Replace("\"", "\\\"")
                 .Replace("\r", "\\r")
-                .Replace("\n", "\\n") + """;
+                .Replace("\n", "\\n") + "\"";
         }
 
         private void WriteFailure(Exception ex)
