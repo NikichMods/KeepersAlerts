@@ -104,9 +104,7 @@ The behavior is split into independent evidence gates:
 - **persistent HUD ownership/lifecycle: READY** — `UI Root/HUD` with native screen-size anchoring;
 - **transient visual family: READY for prototype** — clone/reuse the verified `NewBodyArrivedGUI` presentation family without mutating the stock corpse instance;
 - **prayer visual asset: READY** — `(pray_bubble)` -> `icon_pray_bubble`;
-- **confession audio: READY for prototype** — direct `resources.assets` evidence identifies the stock church-pulpit prayer sound as MasterAudio group `chorus_short`.
-
-The integrated runtime candidate must still provide perceptual acceptance that `chorus_short` is appropriate as a remote one-shot cue, but the resource identity itself is no longer blocked.
+- **confession audio: ACCEPTED** — direct installed-runtime A/B testing selected the stock sound `bell_single` as the desired short remote cue. `chorus_short` remains verified but is rejected for this UX because it reads as sermon/prayer audio rather than a concise notification.
 
 ### Corpse persistent reminder
 
