@@ -94,31 +94,32 @@ The already accepted semantic edge remains: a player who deliberately places ano
 
 ### Add / appearance
 
-`DropResGameObject.Drop` creates the drop and adds it through:
+`DropResGameObject.Drop` creates the physical drop and calls `DropsList.Add(DropResGameObject)`.
 
-`DropsList.Add(DropResGameObject)`
+For the selected corridor predicate, a postfix on `DropsList.Add`, filtered to a successful Body addition, is sufficient even though native zone metadata is assigned later: the Body is already present at the verified delivery source position, which is inside the corridor by definition. The resync reads only Body identity, `is_collected`, and position; it does not depend on `zone_id`.
 
-This is used by normal delivery and by ordinary loose-drop creation.
-
-A postfix on `DropsList.Add`, filtered to successful Body additions, can recompute the canonical corridor predicate.
+This is used by normal delivery and by ordinary loose-drop creation, so manually dropping a Body into the corridor also self-heals the current-state predicate.
 
 ### Pickup / clear
 
-Normal big-item pickup converges on:
+There are two normal collection families:
 
-`DropResGameObject.CollectDrop(WorldGameObject)`
+- `DropResGameObject.CollectDrop(WorldGameObject)` sets `is_collected=true`, then later calls `DestroyLinkedHint()`;
+- large-item / overhead pickup in `BaseCharacterComponent.TryOtherInteractions()` sets the highlighted drop's `is_collected=true` directly and then calls that same drop's `DestroyLinkedHint()`, bypassing `CollectDrop`.
 
-which sets `is_collected=true` before inventory transfer and before `DropsList.Update` physically removes the object.
+Therefore `CollectDrop` alone is **not** a complete Body-clear seam.
 
-Bodies are big/non-stack-merging items, so ordinary stack-merging removal is not applicable.
+`DropResGameObject.DestroyLinkedHint()` is the least-sufficient common post-commit seam for ordinary Body pickup: by the time it executes, `is_collected` is already true on both paths. A postfix filtered to `is_collected && Body` can recompute while the drop is still in `DropsList`; the canonical query ignores collected entries, so it clears immediately without waiting for `DropsList.Update`.
 
-A postfix on `CollectDrop`, filtered to Body, can recompute while excluding `is_collected` drops. This observes the current actionable state without waiting for a later frame.
+Bodies are big and `DoTryMerging` explicitly returns for `definition.is_big`, so stack-merging removal is not an alternate Body path.
 
 ### Save/load resync
 
-`DropsList.FromGameSave(GameSave)` recreates every saved loose drop via the normal `DropResGameObject.Drop` path and then restores its saved `zone_id`.
+`DropsList.FromGameSave(GameSave)` recreates saved loose drops through the normal drop path and restores saved `zone_id`.
 
-A postfix on `FromGameSave` gives one authoritative whole-list resync and, crucially, also clears stale in-memory Keeper's Alerts state when a loaded save contains no qualifying Body.
+During reconstruction, add callbacks must not synthesize event presentation. The preferred final initial-state boundary is `MainGame.OnGameStartedPlaying()`: it runs after `WorldMap.FromGameSave -> DropsList.FromGameSave` reconstruction and after the stock HUD has reopened.
+
+A postfix there performs one authoritative whole-list resync and re-arms normal transition presentation. Existing active states from the save produce persistent indicators only, not arrival sound/transient cues.
 
 Known direct list-removal exceptions in inspected host code are unrelated:
 - a save-migration cleanup removes only stone/marble in a refugee-area rectangle;
@@ -133,8 +134,8 @@ They do not create a normal cemetery/morgue Body-removal path outside `CollectDr
 
 - **Observable property:** persistent reminder is present iff an uncollected loose Body occupies the currently applicable native delivery corridor.
 - **Canonical owner:** `DropsList.me.drops` + live Body position; branch anchor is repaired `morgue_throw_out` or pre-repair `donkey_cemetery_point`.
-- **Final writer / consumer:** `DropResGameObject.Drop` establishes physical drop; `CollectDrop` commits pickup; `FromGameSave` reconstructs saved loose-drop truth.
-- **Blast radius:** three narrow Harmony postfixes; all immediately filter/recompute read-only state and do not alter host return values or data.
+- **Final writer / consumer:** `DropResGameObject.Drop` / `DropsList.Add` establish the physical Body in the list; ordinary Body pickup has committed `is_collected=true` before `DestroyLinkedHint`; saved loose-drop reconstruction completes before `MainGame.OnGameStartedPlaying`.
+- **Blast radius:** three narrow Harmony postfixes (`DropsList.Add`, `DropResGameObject.DestroyLinkedHint`, `MainGame.OnGameStartedPlaying`); all immediately filter/recompute read-only state and do not alter host return values or data.
 - **Preserved invariants:** donkey schedule/delivery, stock bell/toast, Body physics, pickup, morgue occupancy, save/load, manually moved bodies, unrelated drops.
 - **Acceptance evidence:** accepted repaired delivery/save/load/pickup runtime trace + accepted donkey graph + direct installed asset geometry + inspected host drop/kick lifecycle.
 - **Gate:** **READY**.
