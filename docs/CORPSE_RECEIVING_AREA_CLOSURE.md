@@ -34,6 +34,11 @@ Direct inspection of the user-supplied GK `resources.assets` identifies the nati
 - donkey prefab: no `DockPoint` component;
 - repaired `morgue_throw_out`: no `DockPoint` component.
 
+A dedicated installed-runtime Corpse Drop Origin Probe 0.1.0 independently confirms the donkey side:
+- `donkey.GetDropPos()` exactly equals `donkey.tf.position`;
+- reported delta is `(0,0,0)`;
+- `donkey.dock_count=0`.
+
 Therefore the directional delivery origin is the source WGO transform itself for both ordinary branches.
 
 Use live native anchors rather than hard-coded coordinates where possible:
