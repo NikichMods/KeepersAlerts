@@ -108,18 +108,25 @@ The behavior is split into independent evidence gates:
 
 ### Corpse persistent reminder
 
-**READY for production integration.**
+**State/detection: READY. Presentation ownership: READY.**
 
-Established:
-- delivery path, loose-drop lifecycle and save/load reconstruction;
-- both pre-repair and repaired delivery sources/directions;
-- direction-aware bounded receiving corridors including the sleep/wait fixed-timestep envelope;
-- event-driven recompute seams: `DropsList.Add`, Body `DropResGameObject.CollectDrop`, and `DropsList.FromGameSave`;
-- persistent HUD parent/anchor lifecycle.
+Selected canonical predicate: at least one uncollected loose Body occupies the currently applicable native delivery corridor.
 
-See `docs/CORPSE_RECEIVING_AREA_CLOSURE.md`.
+The verified corridor is direction-aware:
+- lateral half-width 96 world units;
+- backward allowance 48;
+- forward length 544;
+- pre-repair: native `donkey_cemetery_point`, direction Up;
+- repaired: live `morgue_throw_out`, direction Down.
 
-Do not use `cur_bodies_count` and do not poll per frame.
+The 544 forward bound includes the worst inspected game fixed timestep used by native kick physics. It replaces the earlier provisional circular-envelope idea.
+
+Selected event-driven resync:
+- `DropsList.Add` postfix for live Body additions;
+- `DropResGameObject.DestroyLinkedHint()` postfix after `is_collected=true` for Body pickup, including the overhead-item path that bypasses `CollectDrop`;
+- `MainGame.OnGameStartedPlaying()` postfix for silent canonical post-load initialization.
+
+Do not use `cur_bodies_count`.
 
 ## Acceptance invariants
 
