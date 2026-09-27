@@ -3,6 +3,19 @@
 **Branch:** `research/corpse-waiting-state`  
 **Purpose:** close only the remaining post-delivery provenance/reconstruction question.
 
+## Frozen artifact identity
+
+- source commit: `efaa1c636a79815e66c451244c5dcf7735f9a173`
+- GitHub Actions run: `36284873364`
+- artifact: `KeepersAlerts-CorpseStateProbe-0.1.0`
+- artifact ID: `10920222408`
+- DLL: `KeepersAlerts.CorpseStateProbe.0.1.0.dll`
+- DLL size: `15,360 bytes`
+- DLL SHA-256: `a249bb20ecefb924e08b2c64cec816c5de84e487299939b65b4b51724cc66375`
+- CI result: clean Release build, 0 warnings / 0 errors
+
+Do not rebuild or replace different bytes under probe version 0.1.0.
+
 ## Exact question
 
 Can an uncollected donkey-delivered corpse be recognized after save/load from the game's own loose-drop state with a predicate narrow enough to drive Keeper's Alerts without a separate persisted mod flag?
