@@ -33,3 +33,16 @@ No pre-repair delivery is required for this probe.
 
 Report:
 `BepInEx/KeepersAlerts-corpse-drop-origin-probe-0.1.0.txt`
+
+
+## Frozen artifact identity
+
+- exact source commit: `6f6e2b7f8766e65be2394d011ba6b11feb952532`
+- GitHub Actions run: `36354493935`
+- artifact ID: `10943342689`
+- DLL: `KeepersAlerts.CorpseDropOriginProbe.0.1.0.dll`
+- size: `12,288 bytes`
+- SHA-256: `0b1d6554f2e0b42cd81f01015e3f64cf99bce99ed0b5cf3b99721895f8c70804`
+- build: `0 warnings / 0 errors`
+
+Do not rebuild different bytes under probe version 0.1.0.
