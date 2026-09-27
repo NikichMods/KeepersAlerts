@@ -236,3 +236,92 @@ Accepted implementation model:
 **Corpse state-transition / receiving-area gate: READY.**
 
 Persistent HUD ownership/lifecycle is independently READY from Presentation Probe 0.1.0.
+
+
+## Corpse receiving-area closure
+
+Further direct inspection closes the remaining pre-repair geometry and normal-play resync seams.
+
+### Pre-repair source point
+
+The stock donkey ObjectDefinition has `drop_point=Auto`.
+
+`WorldGameObject.GetDropPos()` returns the WGO transform itself when there are no DockPoint components. Direct inspection of the installed `resources.assets` donkey prefab found no DockPoint component anywhere in its hierarchy.
+
+Therefore the pre-repair / outside `Flow_DropBody` node, whose `WGO to drop` input is null/self and whose direction is `Up`, drops from the donkey WGO's actual transform position.
+
+The stock donkey route targets `donkey_cemetery_point=(3676,-2016)`. Accepted historical runtime logs show delivery-time donkey positions at or very near that authored point, including:
+- `(3676.0,-2016.0)` during the initial donkey/body sequence;
+- `(3677.0,-2016.0)`;
+- approximately `(3686.4..3686.5,-2016.0)` in later ordinary deliveries.
+
+The movement graph uses speed 1.2 and does not snap NPCs to the exact destination, explaining the small observed X offset.
+
+### Native directional-drop bound
+
+`Flow_DropBody` uses force factor 3 for directional drops.
+
+`DropResGameObject.Drop` first applies an immediate 28.800001-unit directional offset, then `KickComponent` decays the normalized kick by factor 0.96 each fixed step. GK startup sets `Time.fixedDeltaTime=1/60`. The drop-curve `duration_factor` field is authored in the range 0..1.
+
+At the maximal authored factor 1:
+- horizontal dynamic kick displacement is approximately 114.80 world units;
+- vertical dynamic kick displacement is approximately 91.84 world units because vertical movement uses the native 0.8 factor;
+- including the initial 28.8-unit offset, maximum source-relative displacement is approximately 143.61 world units.
+
+Accepted repaired-chute runtime samples are smaller: roughly 35-72 units from `morgue_throw_out`.
+
+### Selected receiving-area predicate
+
+The current corpse-waiting truth is:
+
+**at least one uncollected loose Body in `DropsList.me.drops` lies within 192 world units of either native delivery anchor:**
+- pre-repair/outside: `WorldMap.GetGDPointByName("donkey_cemetery_point", false)`;
+- repaired chute: live WGO `custom_tag="morgue_throw_out"`.
+
+192 equals two native 96-unit world steps. It exceeds the maximal authored directional-drop displacement with margin for the observed NPC arrival offset while remaining a small local receiving area rather than a morgue/graveyard-wide proxy.
+
+No `zone_id` filter is required. This is intentional: the pre-repair and repaired branches occupy different world/zone contexts, while the physical Body + bounded native-anchor geometry is the shared semantic.
+
+Known product edge remains explicit: a player deliberately placing another loose Body in one of these small receiving areas will satisfy the same actionable-state predicate.
+
+### Live resync seams
+
+#### Add / drop
+
+Use a postfix on the exact public static `DropResGameObject.Drop(Vector3, Item, Transform, Direction, float, int, bool, bool)` overload.
+
+After it returns:
+- the Body drop has been created and inserted into `DropsList`;
+- native zone metadata has been assigned;
+- the initial directional offset / kick has been initiated;
+- a canonical receiving-area resync can query `DropsList`.
+
+Filter immediately to Body items before resync. This also safely self-heals if a player manually drops a Body into or out of the receiving area.
+
+During save restoration the same host method is used with `Direction.IgnoreDirection`; transition presentation must remain suppressed until the initial world-ready resync described below.
+
+#### Clear / pickup
+
+Body pickup has a special large-item path: `BaseCharacterComponent.TryOtherInteractions` can set the highlighted Body drop's `is_collected=true` directly instead of calling `DropResGameObject.CollectDrop`.
+
+Both the normal `CollectDrop` path and the large-item overhead pickup path then call `DropResGameObject.DestroyLinkedHint()` after `is_collected` becomes true. Stack-merging also uses this method, but `DoTryMerging` explicitly returns for `definition.is_big`, so Bodies do not enter the merge-removal path.
+
+Therefore a postfix on `DropResGameObject.DestroyLinkedHint()`, filtered to `is_collected && Body`, is the least-sufficient common normal-play clear seam. The canonical query ignores collected drops even before `DropsList.Update` destroys/removes them on the following update.
+
+#### Load / initial resync
+
+The load sequence restores drops through `WorldMap.FromGameSave -> DropsList.FromGameSave` before the final gameplay callback.
+
+`MainGame.OnGameStartedPlaying()` occurs after the reconstructed drop list exists and after the HUD has reopened. A postfix there is the preferred one-time canonical initial resync for both corpse and confession state.
+
+Initial resync establishes persistent indicators only. It must **not** synthesize transient/audio notifications for a state that was already active in the save.
+
+### Corpse state/detection gate
+
+- **Observable property:** persistent reminder exactly while an uncollected loose Body occupies either bounded native delivery receiving area.
+- **Canonical owner:** `DropsList.me.drops` Body entries and their current world positions; native delivery anchors `donkey_cemetery_point` and `morgue_throw_out`.
+- **Final writer / consumer:** `DropResGameObject.Drop` after drop creation/metadata/kick initiation; pickup sets `is_collected` before `DestroyLinkedHint`; save restoration completes before `MainGame.OnGameStartedPlaying`.
+- **Blast radius:** generic drop/pickup methods are shared globally, but every callback returns immediately unless the affected item is a Body; the canonical query examines only Body drops near two small anchors.
+- **Preserved invariants:** donkey delivery, stock arrival cue, body physics/pickup, morgue occupancy, save/load, unrelated drops and UI remain unchanged.
+- **Acceptance evidence:** accepted repaired-chute delivery/save-load/pickup runtime test; historical real donkey arrival logs for the outside source; direct installed-asset prefab inspection; GK 1.407 decompiled drop/movement/load lifecycle.
+- **Gate: READY for production implementation.**
