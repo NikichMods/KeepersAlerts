@@ -41,10 +41,10 @@
 
 - **Observable property:** corpse reminder iff an uncollected loose Body occupies the applicable native delivery corridor.
 - **Canonical owner:** `DropsList.me.drops` + live native delivery anchor.
-- **Final writer/commit points:** `DropsList.Add`, `DropResGameObject.CollectDrop`, `DropsList.FromGameSave`.
-- **Mechanism:** postfix the three seams; use the verified direction-aware 96 / 48 / 544 corridor.
-- **Load boundary:** a `FromGameSave` prefix only resets Keeper's Alerts cue-arming state; it does not alter host data. The postfix performs authoritative corpse resync.
-- **Blast radius:** one add postfix, one pickup postfix, one save-load prefix/postfix.
+- **Final writer/commit points:** `DropsList.Add` establishes a new loose Body; both normal collection and overhead Body pickup have set `is_collected=true` before `DropResGameObject.DestroyLinkedHint`; reconstructed drop truth is complete before `MainGame.OnGameStartedPlaying`.
+- **Mechanism:** postfix `DropsList.Add`, filtered to successful Body adds; postfix `DropResGameObject.DestroyLinkedHint`, filtered to collected Body; use the verified direction-aware 96 / 48 / 544 corridor.
+- **Load boundary:** keep transition presentation disarmed during reconstruction; postfix `MainGame.OnGameStartedPlaying` performs authoritative silent resync and only then re-arms live transition cues.
+- **Blast radius:** one generic add postfix and one generic hint-destroy postfix, both immediately Body-filtered, plus one game-started postfix shared by initial state resync.
 - **Preserved invariants:** delivery, physics, stock bell/toast, pickup, morgue count, save data, unrelated drops.
 - **Evidence:** CORPSE_RECEIVING_AREA_CLOSURE + accepted runtime trace.
 - **Gate:** READY.
