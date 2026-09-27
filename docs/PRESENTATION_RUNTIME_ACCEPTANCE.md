@@ -134,3 +134,25 @@ Build a new, versioned **sound-only 0.1.1 probe** that:
 - performs no audio playback or host mutation.
 
 No prayer, sermon, confession roll or other gameplay action is required beyond loading the church/pulpit hierarchy.
+
+
+## Direct asset follow-up — church audio closed
+
+A user-supplied `resources.assets` from the installed game was inspected directly after this runtime probe.
+
+Source identity:
+- `resources.assets` SHA-256: `215c7981901a4b72d5db717666ba47ad3cc032527c95f58dc39d8af1293a69ca`
+- size: `93,209,412 bytes`
+- Unity engine string: `2020.3.17f1`
+
+The serialized hierarchy contains:
+
+`church_pulpit -> PrayFX -> pray sound`
+
+The `pray sound` GameObject has one Transform and one MonoBehaviour; accepted runtime evidence identifies that MonoBehaviour as `DarkTonic.MasterAudio.EventSounds`.
+
+Its serialized AudioEvent payload contains `Your action name`, followed by `chorus_short`, followed later by `[None]`. Matching MasterAudio field order establishes `chorus_short` as `AudioEvent.soundType` / sound-group identity.
+
+**Confession audio resource identity is therefore READY:** `chorus_short`.
+
+The previously prepared Church Pray Sound Probe 0.1.1 is superseded for this research question and should not be required from the user unless later runtime behavior contradicts the direct asset evidence.

@@ -147,11 +147,23 @@ with component:
 
 `DarkTonic.MasterAudio.EventSounds`
 
-This is a stronger thematic candidate than reusing `donkey_bell`, but the actual MasterAudio event/sound-group configuration is still not recorded. Presentation Probe 0.1.0 reported the church sound transform as not found. A deliberate rerun while the stock HUD zone label was `Церковь` produced the same result.
+Presentation Probe 0.1.0 could not capture the component because of a path-filter bug, but direct inspection of the user-supplied GK `resources.assets` now closes the audio identity without another runtime probe.
 
-Source inspection closes the reason: 0.1.0 searches for suffix `/church_pulpit/content/...`, while the verified hierarchy contains `/[wgo] church_pulpit/content/...`. The result is therefore a path-filter false negative, not evidence that the sound object is unloaded or absent.
+Serialized prefab hierarchy proves:
 
-The object name is still not evidence of a playable sound ID. Audio remains a separate BLOCKED behavior gate until a corrected versioned read-only probe captures the exact `EventSounds` configuration.
+`church_pulpit -> PrayFX -> pray sound`
+
+and the `pray sound` EventSounds MonoBehaviour contains the AudioEvent payload:
+
+`Your action name -> chorus_short -> [None]`
+
+Matching MasterAudio field layout maps the second string to `AudioEvent.soundType`, and the action function is the normal `PlaySound` path.
+
+Therefore the verified reusable native cue is:
+
+`MasterAudio sound group = "chorus_short"`
+
+Do not extract or ship the game's audio. Reuse the existing runtime sound group through MasterAudio.
 
 ## Research-method checkpoint — presentation probe
 
@@ -205,6 +217,10 @@ Preserved invariant: `GUIElements.me.body_arrived_gui` and stock `Flow_BodyArriv
 
 The final size/placement of the substituted prayer symbol is a perceptual UX decision to validate visually; it is not an unknown host owner.
 
-### Remaining presentation unknown
+### Confession audio closure
 
-Only the intended confession **audio resource/configuration** remains materially unresolved. It is independently BLOCKED and does not invalidate the READY visual/persistent-HUD mechanisms.
+Direct `resources.assets` inspection closes the remaining resource identity as MasterAudio group `chorus_short`.
+
+**Confession audio resource gate: READY for production prototype.**
+
+The integrated candidate still needs perceptual runtime acceptance because suitability/volume in the remote-notification context is a UX judgment, not a resource-identity question.

@@ -104,9 +104,9 @@ The behavior is split into independent evidence gates:
 - **persistent HUD ownership/lifecycle: READY** — `UI Root/HUD` with native screen-size anchoring;
 - **transient visual family: READY for prototype** — clone/reuse the verified `NewBodyArrivedGUI` presentation family without mutating the stock corpse instance;
 - **prayer visual asset: READY** — `(pray_bubble)` -> `icon_pray_bubble`;
-- **confession audio: BLOCKED** — exact MasterAudio event/sound-group configuration remains unknown.
+- **confession audio: READY for prototype** — direct `resources.assets` evidence identifies the stock church-pulpit prayer sound as MasterAudio group `chorus_short`.
 
-A BLOCKED audio gate must not be bundled into production by guessing. It is independent of the READY visual/state mechanisms.
+The integrated runtime candidate must still provide perceptual acceptance that `chorus_short` is appropriate as a remote one-shot cue, but the resource identity itself is no longer blocked.
 
 ### Corpse persistent reminder
 
