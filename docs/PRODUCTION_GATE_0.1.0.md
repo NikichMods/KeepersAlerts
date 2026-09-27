@@ -10,7 +10,7 @@
 - **Canonical owner:** confessional `WorldGameObject.custom_interaction_events`.
 - **Final consumer:** `WorldGameObject.RedrawBubble(bool?)` runs after native add/remove/consume mutations and refreshes the stock interaction presentation.
 - **Mechanism:** postfix `RedrawBubble`, filtered immediately to `church_budka_1` / `church_budka_2`, then aggregate canonical resync.
-- **Load boundary:** cue generation is disarmed before `DropsList.FromGameSave` reconstruction and re-armed only after the next native `HUD.Open()` silent resync. This prevents load restoration from masquerading as a new event.
+- **Load boundary:** a prefix on `DropsList.FromGameSave` disarms Keeper's Alerts transition presentation before reconstructed drops are added. `MainGame.OnGameStartedPlaying()` then performs the authoritative silent state resync and only afterward re-arms live transition cues. This also handles loading another save in the same game process without allowing restored state to masquerade as a new event.
 - **Blast radius:** one filtered WGO postfix; no mutation of WGO events or confession mechanics.
 - **Preserved invariants:** stock/Rebalanced RNG, interaction consumption, rewards, save/load, bubble rendering.
 - **Evidence:** STATE_OWNERSHIP_RESEARCH + accepted PrayerClarity lifecycle evidence.
@@ -43,8 +43,8 @@
 - **Canonical owner:** `DropsList.me.drops` + live native delivery anchor.
 - **Final writer/commit points:** `DropsList.Add` establishes a new loose Body; both normal collection and overhead Body pickup have set `is_collected=true` before `DropResGameObject.DestroyLinkedHint`; reconstructed drop truth is complete before `MainGame.OnGameStartedPlaying`.
 - **Mechanism:** postfix `DropsList.Add`, filtered to successful Body adds; postfix `DropResGameObject.DestroyLinkedHint`, filtered to collected Body; use the verified direction-aware 96 / 48 / 544 corridor.
-- **Load boundary:** keep transition presentation disarmed during reconstruction; postfix `MainGame.OnGameStartedPlaying` performs authoritative silent resync and only then re-arms live transition cues.
-- **Blast radius:** one generic add postfix and one generic hint-destroy postfix, both immediately Body-filtered, plus one game-started postfix shared by initial state resync.
+- **Load boundary:** prefix `DropsList.FromGameSave` disarms transition presentation before drop reconstruction; postfix `MainGame.OnGameStartedPlaying` performs authoritative silent resync and only then re-arms live transition cues.
+- **Blast radius:** one generic add postfix and one generic hint-destroy postfix, both immediately Body-filtered, one load prefix that changes only Keeper's Alerts internal arming state, plus one game-started postfix shared by initial state resync.
 - **Preserved invariants:** delivery, physics, stock bell/toast, pickup, morgue count, save data, unrelated drops.
 - **Evidence:** CORPSE_RECEIVING_AREA_CLOSURE + accepted runtime trace.
 - **Gate:** READY.
@@ -54,7 +54,7 @@
 - **Observable property:** one/two small indicators remain visible only while their corresponding state is actionable and follow stock HUD visibility.
 - **Canonical owner:** `UI Root/HUD/hud left`, already anchored to `UI Root/Screen size panel/Screen size`.
 - **Final consumer:** native NGUI under the stock HUD panel.
-- **Mechanism:** create a private child container under `hud left`; reuse loaded stock `UI2DSprite` assets. A postfix on `HUD.Open()` is the lifecycle seam for attach/re-attach and silent state resync. `HUD.Hide()` needs no patch because parent deactivation hides children automatically.
+- **Mechanism:** create a private child container under `hud left`; reuse loaded stock `UI2DSprite` / `UILabel` assets. A postfix on `HUD.Open()` is the lifecycle seam for attach/re-attach and refreshing the already-known indicator state. State restoration/re-arming remains owned by `MainGame.OnGameStartedPlaying()`. `HUD.Hide()` needs no patch because parent deactivation hides children automatically.
 - **Blast radius:** one zero-argument HUD postfix and private child objects only.
 - **Preserved invariants:** stock HUD transforms/anchors/components are not rewritten.
 - **Evidence:** Presentation Probe 0.1.0.
