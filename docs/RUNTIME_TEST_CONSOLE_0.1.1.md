@@ -57,3 +57,20 @@ The previous 0.1.0 clear-confession failure is avoided by not forcing `WorldGame
 ## Scope
 
 Research DLL only. It must never ship with the Nexus release.
+
+
+## Frozen artifact identity
+
+- exact build head: `44e4a3ed574ce936c6dad3cb22e0a8ac2944d101`
+- GitHub Actions run: `36359164845`
+- job: `108732753587`
+- artifact ID: `10944931956`
+- artifact ZIP digest: `sha256:cfb7c38a3edc742b934ae92a450ab9515c7e9c4ce79f552bc9e78af9d56951d6`
+- DLL: `KeepersAlerts.RuntimeTestConsole.0.1.1.dll`
+- DLL size: `30,720 bytes`
+- DLL SHA-256: `7ac46d941e7a2ba29b5433733eff22f9bd42cc10690c5a05b583b5d462d7d671`
+- build: `0 warnings / 0 errors`
+
+The downloaded artifact was independently extracted and its DLL size/SHA-256 matched CI.
+
+Do not rebuild or replace different bytes under console version 0.1.1.
