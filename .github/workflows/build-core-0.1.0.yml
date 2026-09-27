@@ -1,0 +1,88 @@
+name: Build Keeper's Alerts 0.1.0 candidate
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - candidate/core-0.1.0
+    paths:
+      - 'src/**'
+      - 'KeepersAlerts.csproj'
+      - 'nuget.config'
+      - '.github/workflows/build-core-0.1.0.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keepers-alerts-core-0.1.0-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Clean prior outputs
+        run: rm -rf bin obj artifacts
+
+      - name: Restore
+        run: dotnet restore KeepersAlerts.csproj --configfile nuget.config
+
+      - name: Build clean Release
+        run: dotnet build KeepersAlerts.csproj -c Release --no-restore --nologo
+
+      - name: Stage immutable candidate
+        id: artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          dll='bin/ReleasePlugin/KeepersAlerts.dll'
+          test -f "$dll"
+
+          mkdir -p artifacts
+          cp "$dll" artifacts/KeepersAlerts.dll
+          cp "$dll" artifacts/KeepersAlerts-0.1.0-candidate.dll
+
+          canonical_hash=$(sha256sum artifacts/KeepersAlerts.dll | awk '{print $1}')
+          handoff_hash=$(sha256sum artifacts/KeepersAlerts-0.1.0-candidate.dll | awk '{print $1}')
+          test "$canonical_hash" = "$handoff_hash"
+          size=$(stat -c%s artifacts/KeepersAlerts.dll)
+
+          {
+            echo 'Artifact: KeepersAlerts.dll'
+            echo "Candidate copy: KeepersAlerts-0.1.0-candidate.dll"
+            echo "Product: Keeper's Alerts"
+            echo 'Version: 0.1.0'
+            echo 'Plugin GUID: nikich.keepersalerts'
+            echo "Source SHA: $GITHUB_SHA"
+            echo "SHA-256: $canonical_hash"
+            echo "Size: $size"
+            echo 'Supported game MVID: 6f50b8e7-156b-49ac-bbe8-7505894b2364'
+            echo 'Target: Graveyard Keeper 1.407 / BepInEx 5'
+            echo 'Scope: corpse waiting reminder + confession notification/reminder'
+          } > artifacts/BUILD_INFO.txt
+
+          echo "sha256=$canonical_hash" >> "$GITHUB_OUTPUT"
+          echo "size=$size" >> "$GITHUB_OUTPUT"
+          echo "KeepersAlerts.dll size: $size"
+          echo "KeepersAlerts.dll SHA-256: $canonical_hash"
+
+      - name: Upload candidate
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeepersAlerts-0.1.0-candidate-${{ github.sha }}
+          path: |
+            artifacts/KeepersAlerts.dll
+            artifacts/KeepersAlerts-0.1.0-candidate.dll
+            artifacts/BUILD_INFO.txt
+          if-no-files-found: error
+          retention-days: 30
