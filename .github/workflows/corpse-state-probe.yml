@@ -1,0 +1,55 @@
+name: Build corpse waiting-state probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/corpse-waiting-state
+    paths:
+      - 'research/CorpseStateProbe/**'
+      - '.github/workflows/corpse-state-probe.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keepersalerts-corpse-state-probe-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore research/CorpseStateProbe/KeepersAlerts.CorpseStateProbe.csproj
+
+      - name: Build
+        run: dotnet build research/CorpseStateProbe/KeepersAlerts.CorpseStateProbe.csproj -c Release --no-restore
+
+      - name: Stage artifact
+        id: artifact
+        shell: bash
+        run: |
+          mkdir -p dist
+          asset='KeepersAlerts.CorpseStateProbe.0.1.0.dll'
+          cp 'bin/CorpseStateProbe/KeepersAlerts.CorpseStateProbe.dll' "dist/$asset"
+          hash=$(sha256sum "dist/$asset" | awk '{print $1}')
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+          echo "sha256=$hash" >> "$GITHUB_OUTPUT"
+          echo "Corpse State Probe 0.1.0 SHA-256: $hash"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeepersAlerts-CorpseStateProbe-0.1.0
+          path: dist/${{ steps.artifact.outputs.asset }}
+          if-no-files-found: error
+          retention-days: 14
