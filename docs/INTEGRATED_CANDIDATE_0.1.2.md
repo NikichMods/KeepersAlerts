@@ -43,3 +43,20 @@ This removes the mismatch between the production gate and the 0.1.1 implementati
 5. provide screenshot + log.
 
 A separate research-only Keeper's Alerts Test Console is being established for fast presentation/event simulation so later iterations do not require waiting for natural donkey/confession timing.
+
+
+## Frozen artifact identity
+
+- exact production source commit: `3f85508064704bf2ad95647859b26073bca8c939`
+- GitHub Actions run: `36356718926`
+- job: `108725801576`
+- artifact ID: `10944126976`
+- artifact ZIP digest: `sha256:0586592ad2e38f7052557f8baff0e152c9cca4a3ef9f830aff1c67ae08eea496`
+- DLL: `KeepersAlerts.0.1.2.dll`
+- DLL size: `20,992 bytes`
+- DLL SHA-256: `aabd996461c00f5b389da3ae2552da100cc7edc9a16a56beddeae59a8ad46ac9`
+- build: `0 warnings / 0 errors`
+
+The artifact is frozen but **not selected for runtime handoff**. The 0.1.1 screenshot proved its corpse visual already renders; UI calibration should happen against 0.1.1 first rather than changing the corpse visual family prematurely.
+
+Do not rebuild or replace different bytes under candidate version 0.1.2.
