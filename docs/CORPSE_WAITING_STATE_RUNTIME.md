@@ -45,11 +45,21 @@ The preferred next model is native receiving-area occupancy:
 
 This deliberately treats a manually placed Body in the same bounded receiving area as the same actionable world state. If strict historical provenance is ever required, it would need a separately justified persisted mod-owned mechanism.
 
+## Presentation/geometry follow-up
+
+Presentation Probe 0.1.0 independently confirmed the live native endpoints:
+
+- `morgue_throw_out=(10656,-10992,-2297.572)`;
+- `morgue_throw_in=(3672,-1896,-374.235)`.
+
+Across accepted repaired-chute Corpse State Probe samples, the delivered body settled at approximately 35-72 world units from `morgue_throw_out`. This supports a small endpoint-relative receiving area rather than a whole-morgue-zone predicate.
+
+The persistent HUD owner is also closed independently: `UI Root/HUD` follows native show/hide lifecycle and contains screen-size-anchored widgets suitable for a small reminder.
+
 ## Follow-up
 
 Do not repeat Corpse State Probe 0.1.0 unless a later implementation contradicts these accepted facts.
 
-Next research should verify:
-- bounded receiving-area geometry for both delivery branches;
-- least-sufficient live state-transition/resync seams;
-- persistent HUD presentation ownership.
+Remaining corpse-state research is limited to:
+- selecting/verifying the bounded endpoint-relative envelope for the pre-repair branch as well as repaired chute;
+- verifying the least-sufficient live add/remove/load resync seam for that predicate.

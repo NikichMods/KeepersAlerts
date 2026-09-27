@@ -80,13 +80,15 @@ No Keeper's Alerts confession save state is needed.
 
 ## Prayer icon rendering
 
-The verified `(pray_bubble)` value is not currently evidenced as an `EasySpritesCollection` sprite ID.
+This is now established from prior accepted installed-runtime font/atlas research:
 
-The stock path places the string into `BubbleWidgetTextData`. `BubbleWidgetText.Draw` renders that data through an NGUI `UILabel`, applies the native font/style, calls `GJL.EnsureLabelHasCorrectFont`, and then assigns the token as label text.
+- NGUI symbol sequence `(pray_bubble)` maps to sprite name `icon_pray_bubble`;
+- the same mapping is present in the native small-font symbol table;
+- the installed icon atlas contains `icon_pray_bubble` at 17x20 pixels.
 
-Therefore the strongest current hypothesis is that `(pray_bubble)` is a native NGUI font-symbol sequence. A persistent HUD indicator should reuse the verified native label/font/symbol context rather than assume a standalone Sprite exists.
+The stock interaction path still expresses the semantic as the token `(pray_bubble)`, so the preferred native rendering path for Keeper's Alerts is an NGUI `UILabel` using a native bitmap font with symbol rendering enabled. A direct `UI2DSprite` using the verified `icon_pray_bubble` asset is a fallback when a sprite component is materially simpler for the chosen presentation.
 
-This must be confirmed from the installed runtime before production UI is written.
+Do not pass the token string itself to `EasySpritesCollection.GetSprite`; the token and sprite ID are distinct verified identifiers.
 
 ## Corpse receiving-area model
 
@@ -104,7 +106,14 @@ This supports a **small endpoint-relative receiving-area predicate**, not a whol
 
 A deliberately placed Body inside the same receiving area is intentionally equivalent from the informational UX perspective: the receiving area contains an actionable corpse.
 
-The exact production radius remains a design/geometry parameter until the live endpoint hierarchy/dock geometry is inspected. Do not hard-code a world-space rectangle or use all of `zone_id="morgue"`.
+Presentation Probe 0.1.0 verified both native endpoint transforms in the installed game:
+
+- `morgue_throw_out`: world position approximately `(10656,-10992)`;
+- `morgue_throw_in`: world position approximately `(3672,-1896)`.
+
+The repaired-chute runtime delivery samples settled approximately 35-72 world units from `morgue_throw_out`. This confirms that a small endpoint-relative envelope is viable and that the whole `zone_id="morgue"` would be unnecessarily broad.
+
+The exact production radius remains a bounded compatibility/design parameter, especially for the pre-repair outside branch, which has not yet been runtime-sampled under the current save. Do not hard-code a large world-space rectangle or use all of `zone_id="morgue"`.
 
 ## Stock transient presentation
 
@@ -116,7 +125,17 @@ The donkey graph separately plays:
 
 `donkey_bell`
 
-`NewBodyArrivedGUI` animates a serialized GUI hierarchy, so decompiled C# does not reveal the actual child sprites, panel ownership, anchors or final visual geometry. Production confession presentation should not imitate this by guess.
+Presentation Probe 0.1.0 closes the serialized stock hierarchy:
+
+- owner: `UI Root/NewBodyArrivedPanel/BodyArrivedPanel`;
+- parent: full-screen `UIPanel` under `UI Root/NewBodyArrivedPanel`;
+- panel widget: 108x62;
+- background: `UI2DSprite("icon_frame_techno")`, 96x52;
+- body image: `UI2DSprite("body_01")`, 96x96;
+- plus glyph: native `tiny_font` UILabel;
+- installed timings: 0.5 s appear, 1.0 s display, 0.5 s hide.
+
+The stock `NewBodyArrivedGUI.Display()` owns activation and the slide-in/hold/slide-out animation. For a confession sibling cue, the strongest native-first direction is therefore to clone/reuse this presentation family and substitute only the semantic visual content, rather than recreating an unrelated toast animation.
 
 ## Confession audio candidate
 
@@ -128,7 +147,9 @@ with component:
 
 `DarkTonic.MasterAudio.EventSounds`
 
-This is a stronger thematic candidate than reusing `donkey_bell`, but the actual MasterAudio event/sound-group configuration was not recorded. The object name is not evidence of a playable sound ID.
+This is a stronger thematic candidate than reusing `donkey_bell`, but the actual MasterAudio event/sound-group configuration is still not recorded. Presentation Probe 0.1.0 ran while the player/world snapshot was in the morgue and reported the church sound transform as not loaded; this is not negative evidence against the earlier church-loaded observation.
+
+The object name is not evidence of a playable sound ID. Audio remains a separate BLOCKED behavior gate until the same read-only probe captures the church-loaded component or another direct source proves the exact sound-group/event configuration.
 
 ## Research-method checkpoint — presentation probe
 
@@ -158,3 +179,30 @@ It must:
 - produce one diagnostic report.
 
 No corpse delivery or confession roll is required for this probe.
+
+
+## Presentation Probe 0.1.0 accepted result
+
+Accepted installed-runtime report: `KeepersAlerts-presentation-probe-0.1.0.txt`.
+
+### Persistent HUD owner
+
+The runtime HUD is `UI Root/HUD`, with its own `UIPanel`. Static `HUD.Open/Hide` toggles the HUD root itself when windows open/close.
+
+The native `hud left` widget is anchored directly to `UI Root/Screen size panel/Screen size` at the top-left. Therefore a small Keeper's Alerts container parented under the HUD and anchored to that verified screen-size target will inherit native HUD visibility and responsive placement without raw screen arithmetic.
+
+**Persistent HUD ownership/lifecycle gate: READY.**
+
+### Confession transient visual family
+
+The stock corpse-arrival UI hierarchy and its animation owner are now known exactly. A separate Keeper's Alerts instance can reuse/clone that native visual grammar without modifying the existing corpse instance.
+
+Preserved invariant: `GUIElements.me.body_arrived_gui` and stock `Flow_BodyArrivedNotify` remain untouched.
+
+**Confession transient visual-family gate: READY for a visual prototype.**
+
+The final size/placement of the substituted prayer symbol is a perceptual UX decision to validate visually; it is not an unknown host owner.
+
+### Remaining presentation unknown
+
+Only the intended confession **audio resource/configuration** remains materially unresolved. It is independently BLOCKED and does not invalidate the READY visual/persistent-HUD mechanisms.

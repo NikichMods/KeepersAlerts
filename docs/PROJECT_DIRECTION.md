@@ -60,9 +60,11 @@ Transient and persistent feedback serve different jobs:
 
 For corpse delivery, preserve the game's native transient path.
 
-For confession, inspect whether the dedicated corpse-arrival UI family can be reused or mirrored more faithfully than a generic custom toast.
+For confession, use the verified stock corpse-arrival presentation family as the sibling transient visual direction: its owner, hierarchy, assets and timings are now known from installed runtime evidence. Preserve the stock corpse instance unchanged.
 
-Persistent indicators should use verified native NGUI/HUD lifecycle and anchoring. Do not position them by raw screen arithmetic.
+Persistent indicators should live under the verified `UI Root/HUD` lifecycle and use a native screen-size anchor (the top-left `hud left` anchor family is verified). Do not position them by raw screen arithmetic.
+
+The confession symbol is also closed: native `(pray_bubble)` maps to `icon_pray_bubble` (17x20 in the installed icon atlas).
 
 No numeric confession count is currently required.
 
@@ -96,22 +98,29 @@ Current semantic direction: observe **loose Body occupancy of the bounded native
 
 ### Confession notification
 
-**BLOCKED — presentation/lifecycle research only.**
+The behavior is split into independent evidence gates:
 
-State ownership and persistence are established. Remaining:
-- verify least-sufficient transition hooks and blast radius;
-- verify transient presentation owner;
-- verify persistent HUD anchor/lifecycle;
-- identify a suitable native church/confession sound or make an explicit product choice if none exists.
+- **state-transition observation: READY** — filtered post-`WorldGameObject.RedrawBubble` resync plus world/load resync;
+- **persistent HUD ownership/lifecycle: READY** — `UI Root/HUD` with native screen-size anchoring;
+- **transient visual family: READY for prototype** — clone/reuse the verified `NewBodyArrivedGUI` presentation family without mutating the stock corpse instance;
+- **prayer visual asset: READY** — `(pray_bubble)` -> `icon_pray_bubble`;
+- **confession audio: BLOCKED** — exact MasterAudio event/sound-group configuration remains unknown.
+
+A BLOCKED audio gate must not be bundled into production by guessing. It is independent of the READY visual/state mechanisms.
 
 ### Corpse persistent reminder
 
-**BLOCKED — bounded receiving-area + presentation research only.**
+**BLOCKED only on final receiving-area/state-transition envelope; presentation ownership is READY.**
 
-The delivery path, loose-drop lifecycle and save/load reconstruction are established. Remaining:
-- verify a bounded receiving-area predicate for both pre-repair and repaired-chute states;
-- choose the least-sufficient live transition/resync seam;
-- verify persistent HUD anchor/lifecycle.
+Established:
+- delivery path, loose-drop lifecycle and save/load reconstruction;
+- repaired endpoint and delivered-body geometry;
+- both `morgue_throw_in` and `morgue_throw_out` native transforms;
+- persistent HUD parent/anchor lifecycle.
+
+Remaining:
+- choose/verify the bounded receiving-area predicate that safely covers both pre-repair and repaired-chute states;
+- close the least-sufficient live add/remove/load resync seam for that predicate.
 
 Do not use `cur_bodies_count`.
 

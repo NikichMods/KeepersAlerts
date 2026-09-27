@@ -205,22 +205,30 @@ The probe answered its intended question. Do not repeat it without a new contrad
 
 ### Confession state / detection
 
-For **“is at least one native confession currently available?”**, the canonical owner and save/load truth are established.
+For **“is at least one native confession currently available?”**, the canonical owner, save/load truth and normal-play final-consumer seam are established.
 
-Presentation remains **BLOCKED** pending:
-- least-sufficient transition-hook/blast-radius verification;
-- transient presentation owner;
-- persistent HUD anchor/lifecycle;
-- suitable native audio resource or explicit decision otherwise.
+Preferred observer:
+- postfix `WorldGameObject.RedrawBubble`;
+- immediately filter to the two verified confessionals;
+- recompute aggregate canonical state from `custom_interaction_events`;
+- perform one canonical resync after world/load restoration.
+
+**State-transition observation gate: READY.**
 
 ### Corpse state / detection
 
 The physical state lifecycle and save/load behavior are established.
 
+Presentation Probe 0.1.0 confirms the two native receiving endpoints at approximately:
+- `morgue_throw_out=(10656,-10992)`;
+- `morgue_throw_in=(3672,-1896)`.
+
+Accepted repaired-chute samples settled approximately 35-72 world units from `morgue_throw_out`, so the state can be bounded much more narrowly than an entire world zone.
+
 For a native-state implementation using **receiving-area occupancy** rather than strict historical provenance, the remaining state work is:
-- define/verify the bounded receiving-area predicate for both pre-repair and repaired-chute delivery;
-- verify the least-sufficient live transition/resync seam.
+- choose/verify a bounded endpoint-relative envelope that covers both delivery branches, especially the pre-repair branch;
+- verify the least-sufficient add/remove/load resync seam for that predicate.
 
-Persistent UI remains separately **BLOCKED** pending HUD anchor/lifecycle verification.
+Persistent HUD ownership/lifecycle is independently READY from Presentation Probe 0.1.0.
 
-No production runtime source should be added while the behavior-specific gate being implemented remains BLOCKED.
+No production runtime source should be added while the exact behavior-specific gate being implemented remains BLOCKED.
