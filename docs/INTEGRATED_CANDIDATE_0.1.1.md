@@ -42,3 +42,20 @@ Stock corpse arrival behavior is untouched.
 9. log remains sparse and contains no repeated Keeper's Alerts / branch-discriminator errors.
 
 Visual size/placement is intentionally subject to runtime perceptual acceptance.
+
+
+## Frozen artifact identity
+
+- exact production source commit: `e6f86ee29058fb946eb55567abec4f2b71b3ec8a`
+- GitHub Actions run: `36355854538`
+- job: `108723312777`
+- artifact ID: `10944291195`
+- artifact ZIP digest: `sha256:f05348bd7a36246f96e58f358b1545218be4ef3b1419d65da9597ecf7368a419`
+- DLL: `KeepersAlerts.0.1.1.dll`
+- DLL size: `20,480 bytes`
+- DLL SHA-256: `6954552b4c33093ff79f0970daee7710de953db7bbf03405c3af05462d35a2a1`
+- build: `0 warnings / 0 errors`
+
+The downloaded artifact was independently extracted and its DLL size/SHA-256 matched CI.
+
+**Immutable handoff rule:** do not rebuild or replace different bytes under candidate version 0.1.1. Any source change after this handoff requires a new candidate version.
