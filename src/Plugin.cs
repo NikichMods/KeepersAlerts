@@ -66,7 +66,8 @@ namespace KeepersAlerts
         private FieldInfo _guiBodyArrivedField;
 
         private MethodInfo _getWgosByObjId;
-        private MethodInfo _getWgosByCustomTag;\n        private MethodInfo _wgoIsDisabled;
+        private MethodInfo _getWgosByCustomTag;
+        private MethodInfo _wgoIsDisabled;
         private MethodInfo _getGdPointByTag;
         private MethodInfo _playSound;
         private MethodInfo _bodyArrivedDisplay;
