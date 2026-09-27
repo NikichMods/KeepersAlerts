@@ -1,0 +1,47 @@
+name: Build corpse drop origin probe
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - research/corpse-drop-origin
+    paths:
+      - 'research/CorpseDropOriginProbe/**'
+      - '.github/workflows/corpse-drop-origin-probe.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keepersalerts-corpse-drop-origin-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+      - run: dotnet restore research/CorpseDropOriginProbe/KeepersAlerts.CorpseDropOriginProbe.csproj
+      - run: dotnet build research/CorpseDropOriginProbe/KeepersAlerts.CorpseDropOriginProbe.csproj -c Release --no-restore
+      - id: artifact
+        shell: bash
+        run: |
+          mkdir -p dist
+          asset='KeepersAlerts.CorpseDropOriginProbe.0.1.0.dll'
+          cp 'bin/CorpseDropOriginProbe/KeepersAlerts.CorpseDropOriginProbe.dll' "dist/$asset"
+          size=$(stat -c%s "dist/$asset")
+          hash=$(sha256sum "dist/$asset" | awk '{print $1}')
+          echo "asset=$asset" >> "$GITHUB_OUTPUT"
+          echo "size=$size" >> "$GITHUB_OUTPUT"
+          echo "sha256=$hash" >> "$GITHUB_OUTPUT"
+          echo "Corpse Drop Origin Probe 0.1.0 size: $size"
+          echo "Corpse Drop Origin Probe 0.1.0 SHA-256: $hash"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: KeepersAlerts-CorpseDropOriginProbe-0.1.0
+          path: dist/${{ steps.artifact.outputs.asset }}
+          if-no-files-found: error
+          retention-days: 14
