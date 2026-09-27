@@ -60,6 +60,6 @@ The persistent HUD owner is also closed independently: `UI Root/HUD` follows nat
 
 Do not repeat Corpse State Probe 0.1.0 unless a later implementation contradicts these accepted facts.
 
-Remaining corpse-state research is limited to:
-- selecting/verifying the bounded endpoint-relative envelope for the pre-repair branch as well as repaired chute;
-- verifying the least-sufficient live add/remove/load resync seam for that predicate.
+The remaining geometry and transition questions were subsequently closed statically; see `docs/CORPSE_RECEIVING_AREA_CLOSURE.md`.
+
+No additional pre-repair runtime probe is required before the first production candidate unless implementation evidence contradicts the derived corridor.

@@ -108,19 +108,18 @@ The behavior is split into independent evidence gates:
 
 ### Corpse persistent reminder
 
-**BLOCKED only on final receiving-area/state-transition envelope; presentation ownership is READY.**
+**READY for production integration.**
 
 Established:
 - delivery path, loose-drop lifecycle and save/load reconstruction;
-- repaired endpoint and delivered-body geometry;
-- both `morgue_throw_in` and `morgue_throw_out` native transforms;
+- both pre-repair and repaired delivery sources/directions;
+- direction-aware bounded receiving corridors including the sleep/wait fixed-timestep envelope;
+- event-driven recompute seams: `DropsList.Add`, Body `DropResGameObject.CollectDrop`, and `DropsList.FromGameSave`;
 - persistent HUD parent/anchor lifecycle.
 
-Remaining:
-- choose/verify the bounded receiving-area predicate that safely covers both pre-repair and repaired-chute states;
-- close the least-sufficient live add/remove/load resync seam for that predicate.
+See `docs/CORPSE_RECEIVING_AREA_CLOSURE.md`.
 
-Do not use `cur_bodies_count`.
+Do not use `cur_bodies_count` and do not poll per frame.
 
 ## Acceptance invariants
 

@@ -225,10 +225,14 @@ Presentation Probe 0.1.0 confirms the two native receiving endpoints at approxim
 
 Accepted repaired-chute samples settled approximately 35-72 world units from `morgue_throw_out`, so the state can be bounded much more narrowly than an entire world zone.
 
-For a native-state implementation using **receiving-area occupancy** rather than strict historical provenance, the remaining state work is:
-- choose/verify a bounded endpoint-relative envelope that covers both delivery branches, especially the pre-repair branch;
-- verify the least-sufficient add/remove/load resync seam for that predicate.
+The remaining geometry/lifecycle work is now closed in `docs/CORPSE_RECEIVING_AREA_CLOSURE.md`.
+
+Accepted implementation model:
+- select repaired `morgue_throw_out` when that WGO exists; otherwise use `donkey_cemetery_point`;
+- use a narrow direction-aware corridor, not an entire zone;
+- recompute on successful `DropsList.Add`, Body `DropResGameObject.CollectDrop`, and `DropsList.FromGameSave`;
+- no recurring polling and no mod-owned persisted corpse flag.
+
+**Corpse state-transition / receiving-area gate: READY.**
 
 Persistent HUD ownership/lifecycle is independently READY from Presentation Probe 0.1.0.
-
-No production runtime source should be added while the exact behavior-specific gate being implemented remains BLOCKED.
