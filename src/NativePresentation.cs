@@ -12,7 +12,6 @@ namespace KeepersAlerts
         private const float SecondIndicatorY = -8f;
 
         private readonly Type _ui2dSpriteType;
-        private readonly MethodInfo _makePixelPerfect;
 
         private Component _hud;
         private GameObject _container;
@@ -26,14 +25,6 @@ namespace KeepersAlerts
         internal HudPresentation()
         {
             _ui2dSpriteType = ReflectionUtil.FindType("UI2DSprite");
-            if (_ui2dSpriteType != null)
-            {
-                _makePixelPerfect = ReflectionUtil.FindMethod(
-                    _ui2dSpriteType,
-                    "MakePixelPerfect",
-                    0,
-                    false);
-            }
         }
 
         internal bool IsHudVisible
@@ -44,6 +35,16 @@ namespace KeepersAlerts
                     && _hud
                     && _hud.gameObject.activeInHierarchy;
             }
+        }
+
+        internal bool IsAttachedTo(object hudObject)
+        {
+            var hud = hudObject as Component;
+            return hud != null
+                && _hud == hud
+                && _container != null
+                && _corpseIndicator != null
+                && _confessionIndicator != null;
         }
 
         internal bool EnsureAttached(object hudObject)
@@ -253,6 +254,7 @@ namespace KeepersAlerts
         private Component _cloneGui;
         private Coroutine _showRoutine;
         private Sprite _prayerSprite;
+        private bool _disabled;
 
         internal ConfessionTransientPresenter(
             MonoBehaviour owner,
@@ -271,7 +273,7 @@ namespace KeepersAlerts
 
         internal void Show()
         {
-            if (_owner == null || _showRoutine != null)
+            if (_disabled || _owner == null || _showRoutine != null)
                 return;
 
             _showRoutine = _owner.StartCoroutine(ShowWhenFree());
@@ -302,9 +304,23 @@ namespace KeepersAlerts
 
         private IEnumerator ShowWhenFree()
         {
-            if (!EnsurePrepared())
+            bool prepared;
+            try
             {
-                _showRoutine = null;
+                prepared = EnsurePrepared();
+            }
+            catch (Exception ex)
+            {
+                ReportFailure(ex);
+                yield break;
+            }
+
+            if (!prepared)
+            {
+                ReportFailure(
+                    new InvalidOperationException(
+                        "Verified stock BodyArrivedPanel presentation "
+                        + "could not be prepared."));
                 yield break;
             }
 
@@ -321,11 +337,20 @@ namespace KeepersAlerts
             }
             catch (Exception ex)
             {
-                if (_onFailure != null)
-                    _onFailure("confession transient", ex);
+                ReportFailure(ex);
+                yield break;
             }
 
             _showRoutine = null;
+        }
+
+        private void ReportFailure(Exception ex)
+        {
+            _disabled = true;
+            _showRoutine = null;
+
+            if (_onFailure != null)
+                _onFailure("confession transient", ex);
         }
 
         private bool EnsurePrepared()
