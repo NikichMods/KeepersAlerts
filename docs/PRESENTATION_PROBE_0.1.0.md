@@ -3,6 +3,19 @@
 **Branch:** `research/presentation-seams`  
 **Purpose:** close serialized/native presentation owners without changing gameplay or UI.
 
+## Frozen artifact identity
+
+- source commit: `31a314568375fc172255901378dcc4205442d4b0`
+- GitHub Actions run: `36317213484`
+- artifact: `KeepersAlerts-PresentationProbe-0.1.0`
+- artifact ID: `10930868874`
+- DLL: `KeepersAlerts.PresentationProbe.0.1.0.dll`
+- DLL size: `26,624 bytes`
+- DLL SHA-256: `16184e1cbc948655c1a82519e8ed404aa8e2b13983c7a7a689934a694b0c5d8c`
+- CI result: clean Release build, 0 warnings / 0 errors
+
+Do not rebuild or replace different bytes under probe version 0.1.0.
+
 ## Exact questions
 
 1. What runtime hierarchy, panel, anchors and visual children belong to the stock `NewBodyArrivedGUI`?
