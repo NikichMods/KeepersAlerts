@@ -66,3 +66,20 @@ Exercise only touched behavior:
 10. both persistent indicators can coexist without unacceptable overlap.
 
 Visual size/placement remains a candidate-level perceptual item.
+
+
+## Frozen artifact identity
+
+- exact production source commit: `d5c4688a852564157cd5a965cf2897f2cd851b3c`
+- GitHub Actions run: `36355506541`
+- job: `108722323025`
+- artifact ID: `10943478181`
+- artifact ZIP digest: `sha256:2fd6f5a99c61bb2c044733b2ea32c46cc0167f534cf49664464a394f62def5fd`
+- DLL: `KeepersAlerts.0.1.0.dll`
+- DLL size: `20,480 bytes`
+- DLL SHA-256: `189e81b21faccd23410b296117827d553d4700eb35680f7c3715a47e6388cf68`
+- build: `0 warnings / 0 errors`
+
+The downloaded artifact was independently extracted and the DLL size/SHA-256 matched CI.
+
+**Immutable handoff rule:** do not rebuild or replace different bytes under candidate version 0.1.0. Any source change after this handoff requires a new candidate version.
