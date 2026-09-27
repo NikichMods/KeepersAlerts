@@ -120,3 +120,19 @@ Therefore:
 For Keeper's Alerts, `bell_single` is now the preferred first confession-notification audio candidate because its semantics and duration appear closer to a brief remote alert than `chorus_short`.
 
 Final acceptance requires hearing it in the integrated candidate; do not claim from the identifier alone that it is specifically a church bell.
+
+
+## Perceptual acceptance
+
+Audio Compare Console 0.1.0 played the two verified stock candidates through the game's own sound path:
+
+- `bell_single`
+- `chorus_short`
+
+User runtime judgment: **`bell_single` is the desired sound for confession availability.**
+
+Product decision:
+- selected: `bell_single`;
+- rejected as primary cue: `chorus_short`, because it reads as sermon/prayer audio rather than a concise remote notification.
+
+The confession-audio gate is therefore **ACCEPTED / READY for production integration**.
