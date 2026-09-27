@@ -39,20 +39,20 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist
-          asset='KeepersAlerts.RuntimeTestConsole.0.1.0.dll'
+          asset='KeepersAlerts.RuntimeTestConsole.0.1.1.dll'
           cp 'bin/RuntimeTestConsole/KeepersAlerts.RuntimeTestConsole.dll' "dist/$asset"
           size=$(stat -c%s "dist/$asset")
           hash=$(sha256sum "dist/$asset" | awk '{print $1}')
           echo "asset=$asset" >> "$GITHUB_OUTPUT"
           echo "size=$size" >> "$GITHUB_OUTPUT"
           echo "sha256=$hash" >> "$GITHUB_OUTPUT"
-          echo "Runtime Test Console 0.1.0 size: $size"
-          echo "Runtime Test Console 0.1.0 SHA-256: $hash"
+          echo "Runtime Test Console 0.1.1 size: $size"
+          echo "Runtime Test Console 0.1.1 SHA-256: $hash"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
-          name: KeepersAlerts-RuntimeTestConsole-0.1.0
+          name: KeepersAlerts-RuntimeTestConsole-0.1.1
           path: dist/${{ steps.artifact.outputs.asset }}
           if-no-files-found: error
           retention-days: 14
