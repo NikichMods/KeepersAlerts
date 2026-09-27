@@ -15,7 +15,7 @@ namespace KeepersAlerts
     {
         public const string PluginGuid = "nikichmods.keepersalerts";
         public const string PluginName = "Keeper's Alerts";
-        public const string PluginVersion = "0.1.0";
+        public const string PluginVersion = "0.1.1";
 
         private static readonly Guid SupportedGameMvid =
             new Guid("6f50b8e7-156b-49ac-bbe8-7505894b2364");
@@ -66,7 +66,7 @@ namespace KeepersAlerts
         private FieldInfo _guiBodyArrivedField;
 
         private MethodInfo _getWgosByObjId;
-        private MethodInfo _getWgoByCustomTag;
+        private MethodInfo _getWgosByCustomTag;\n        private MethodInfo _wgoIsDisabled;
         private MethodInfo _getGdPointByTag;
         private MethodInfo _playSound;
         private MethodInfo _bodyArrivedDisplay;
@@ -197,11 +197,17 @@ namespace KeepersAlerts
                 AllStatic,
                 new[] { typeof(string) });
 
-            _getWgoByCustomTag = RequireMethod(
+            _getWgosByCustomTag = RequireMethod(
                 _worldMapType,
-                "GetWorldGameObjectByCustomTag",
+                "GetWorldGameObjectsByCustomTag",
                 AllStatic,
                 new[] { typeof(string), typeof(bool) });
+
+            _wgoIsDisabled = RequireMethod(
+                _worldGameObjectType,
+                "IsDisabled",
+                AllInstance,
+                Type.EmptyTypes);
 
             _getGdPointByTag = RequireMethod(
                 _worldMapType,
@@ -582,19 +588,32 @@ namespace KeepersAlerts
             origin = Vector3.zero;
             directionUp = true;
 
-            object repaired = _getWgoByCustomTag.Invoke(
+            object repairedList = _getWgosByCustomTag.Invoke(
                 null,
-                new object[] { RepairedDropTag, true });
+                new object[] { RepairedDropTag, false });
 
-            if (!IsUnityNull(repaired))
+            IEnumerable repairedCandidates = repairedList as IEnumerable;
+            if (repairedCandidates != null)
             {
-                Component repairedComponent = repaired as Component;
-                if (repairedComponent == null)
-                    return false;
+                foreach (object repaired in repairedCandidates)
+                {
+                    if (IsUnityNull(repaired))
+                        continue;
 
-                origin = repairedComponent.transform.position;
-                directionUp = false;
-                return true;
+                    bool disabled = Convert.ToBoolean(
+                        _wgoIsDisabled.Invoke(repaired, null));
+
+                    if (disabled)
+                        continue;
+
+                    Component repairedComponent = repaired as Component;
+                    if (repairedComponent == null)
+                        continue;
+
+                    origin = repairedComponent.transform.position;
+                    directionUp = false;
+                    return true;
+                }
             }
 
             object gdPoint = _getGdPointByTag.Invoke(
