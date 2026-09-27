@@ -91,21 +91,23 @@ Reusable implication: the corpse reminder predicate should use a small endpoint-
 
 ## Church audio — not closed
 
-The report returned:
+Presentation Probe 0.1.0 reported:
 
 `sound_transform=<not found>`
 
-The captured HUD zone was the morgue, and the church pulpit hierarchy was not loaded into this runtime snapshot.
+A deliberate rerun was then captured while the stock HUD zone label was **Церковь** (Church), yet the same result persisted. Source inspection explains why: probe 0.1.0 searched for path suffix
 
-Prior accepted church-loaded evidence proves that:
+`/church_pulpit/content/church_pulpit(Clone)/PrayFX/pray sound`
+
+while prior accepted installed-runtime evidence shows the actual hierarchy contains the WGO prefix:
 
 `World/[wgo] church_pulpit/content/church_pulpit(Clone)/PrayFX/pray sound`
 
-can exist with `DarkTonic.MasterAudio.EventSounds`.
+Because the suffix itself omits `[wgo] `, probe 0.1.0 cannot match the verified transform even when the pulpit is loaded.
 
-Therefore the 0.1.0 result is **absence from this loaded snapshot**, not evidence that the sound object/resource does not exist.
+Therefore the two `<not found>` reports are **probe-filter false negatives**, not evidence about runtime load state or sound-resource absence.
 
-The exact MasterAudio event/sound-group configuration remains unknown.
+The exact MasterAudio event/sound-group configuration remains unknown. A new versioned sound-only probe is justified; do not rebuild or replace 0.1.0.
 
 ## Evidence gates after acceptance
 
@@ -121,10 +123,14 @@ BLOCKED:
 - confession audio only;
 - final corpse receiving-area envelope / event seam, especially pre-repair coverage.
 
-## Cheapest remaining audio test
+## Remaining audio test
 
-Do not build another probe yet.
+The rerun condition for escalating beyond 0.1.0 is now met and the source bug is understood.
 
-The same frozen 0.1.0 DLL can be rerun after process restart. Load gameplay and enter the church before the probe's optional-object wait expires; no sermon, prayer, confession roll, corpse delivery or state mutation is required. Return the overwritten report.
+Build a new, versioned **sound-only 0.1.1 probe** that:
+- locates the target using the verified `[wgo] church_pulpit` hierarchy or an equivalently robust ancestor/name predicate;
+- includes inactive descendants;
+- records the exact `DarkTonic.MasterAudio.EventSounds` serialized configuration and relevant nested event/sound-group fields;
+- performs no audio playback or host mutation.
 
-Only if the same artifact still cannot see the sound while the pulpit is definitely loaded should a dedicated sound-only 0.1.1 probe be justified.
+No prayer, sermon, confession roll or other gameplay action is required beyond loading the church/pulpit hierarchy.
