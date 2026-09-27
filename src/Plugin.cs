@@ -15,7 +15,7 @@ namespace KeepersAlerts
     {
         public const string PluginGuid = "nikichmods.keepersalerts";
         public const string PluginName = "Keeper's Alerts";
-        public const string PluginVersion = "0.1.1";
+        public const string PluginVersion = "0.1.2";
 
         private static readonly Guid SupportedGameMvid =
             new Guid("6f50b8e7-156b-49ac-bbe8-7505894b2364");
@@ -735,14 +735,10 @@ namespace KeepersAlerts
             Transform hudLeft =
                 FindDescendant(hud.transform, "hud left");
 
-            Transform bodyImage =
-                FindDescendant(bodyArrival.transform, "BodyImage");
-
             Transform plusText =
                 FindDescendant(bodyArrival.transform, "PlusText");
 
             if (hudLeft == null
-                || bodyImage == null
                 || plusText == null)
             {
                 throw new InvalidOperationException(
@@ -752,7 +748,7 @@ namespace KeepersAlerts
             if (IsUnityNull(_corpseIndicator))
             {
                 _corpseIndicator =
-                    UnityEngine.Object.Instantiate(bodyImage.gameObject);
+                    UnityEngine.Object.Instantiate(plusText.gameObject);
 
                 _corpseIndicator.name =
                     "KeepersAlerts_CorpseIndicator";
@@ -763,11 +759,14 @@ namespace KeepersAlerts
 
                 ClearWidgetAnchors(_corpseIndicator);
                 SetWidgetDepth(_corpseIndicator, 80);
+                SetLabelText(
+                    _corpseIndicator,
+                    BodySymbol);
 
                 _corpseIndicator.transform.localPosition =
                     new Vector3(126f, -34f, 0f);
                 _corpseIndicator.transform.localScale =
-                    new Vector3(0.30f, 0.30f, 1f);
+                    new Vector3(1.35f, 1.35f, 1f);
                 _corpseIndicator.SetActive(false);
             }
 
@@ -795,6 +794,13 @@ namespace KeepersAlerts
                     new Vector3(1.35f, 1.35f, 1f);
                 _confessionIndicator.SetActive(false);
             }
+
+            Logger.LogInfo(
+                "Persistent HUD indicators ready under hud left: corpse="
+                + BodySymbol
+                + ", confession="
+                + PraySymbol
+                + ".");
         }
 
         private void EnsureConfessionToast()
