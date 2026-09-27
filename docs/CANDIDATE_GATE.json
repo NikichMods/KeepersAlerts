@@ -102,11 +102,10 @@
       "id": "persistent-hud-presentation",
       "observable_property": "Corpse and confession indicators are small native-style HUD children visible only while their states are actionable, can coexist, and hide/show with the stock HUD.",
       "canonical_owner": "UI Root/HUD/hud left under the stock HUD panel and its existing screen-size anchoring lifecycle.",
-      "final_writer_or_commit_point": "Private child widgets under hud left are rendered by native NGUI; HUD.Open postfix re-attaches/refreshes them when needed, while HUD.Hide parent deactivation hides them automatically.",
+      "final_writer_or_commit_point": "Private cloned tiny_font UILabel widgets under hud left are rendered by native NGUI; one uses the stock HUD token (body), already observed in the morgue HUD description, and one uses the verified (pray_bubble) token. HUD.Open postfix re-attaches/refreshes them when needed, while HUD.Hide parent deactivation hides them automatically.",
       "blast_radius": [
         "One private Keeper's Alerts child container under hud left",
-        "Cloned stock BodyImage for corpse indicator",
-        "Cloned stock tiny_font label using (pray_bubble) for confession indicator"
+        "Two cloned stock tiny_font label widgets using native (body) and (pray_bubble) symbols"
       ],
       "preserved_invariants": [
         "Stock HUD transforms and anchors",
@@ -117,7 +116,8 @@
       "acceptance_evidence": "Runtime candidate check confirms both indicators at normal gameplay, menus hide/show them with HUD, coexist without stock-HUD overlap, and scale/placement are visually acceptable.",
       "evidence_refs": [
         "docs/PRESENTATION_RUNTIME_ACCEPTANCE.md",
-        "docs/PRODUCTION_GATE_0.1.0.md"
+        "docs/PRODUCTION_GATE_0.1.0.md",
+        "Presentation Probe 0.1.0 runtime HUD evidence: tiny_font zone description renders `Тела: (body) 1 / 1`"
       ],
       "state": "READY"
     }
