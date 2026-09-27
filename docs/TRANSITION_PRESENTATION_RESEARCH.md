@@ -147,9 +147,11 @@ with component:
 
 `DarkTonic.MasterAudio.EventSounds`
 
-This is a stronger thematic candidate than reusing `donkey_bell`, but the actual MasterAudio event/sound-group configuration is still not recorded. Presentation Probe 0.1.0 ran while the player/world snapshot was in the morgue and reported the church sound transform as not loaded; this is not negative evidence against the earlier church-loaded observation.
+This is a stronger thematic candidate than reusing `donkey_bell`, but the actual MasterAudio event/sound-group configuration is still not recorded. Presentation Probe 0.1.0 reported the church sound transform as not found. A deliberate rerun while the stock HUD zone label was `Церковь` produced the same result.
 
-The object name is not evidence of a playable sound ID. Audio remains a separate BLOCKED behavior gate until the same read-only probe captures the church-loaded component or another direct source proves the exact sound-group/event configuration.
+Source inspection closes the reason: 0.1.0 searches for suffix `/church_pulpit/content/...`, while the verified hierarchy contains `/[wgo] church_pulpit/content/...`. The result is therefore a path-filter false negative, not evidence that the sound object is unloaded or absent.
+
+The object name is still not evidence of a playable sound ID. Audio remains a separate BLOCKED behavior gate until a corrected versioned read-only probe captures the exact `EventSounds` configuration.
 
 ## Research-method checkpoint — presentation probe
 
