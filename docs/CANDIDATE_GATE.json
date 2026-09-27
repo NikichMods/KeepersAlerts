@@ -1,0 +1,125 @@
+{
+  "schema_version": 1,
+  "candidate_branch": "candidate/0.1.0",
+  "baseline_sha": "de290e60fd810c52237b1a3a1db37eb6bacec9dc",
+  "changes": [
+    {
+      "id": "confession-state-transition",
+      "observable_property": "Persistent confession state mirrors whether at least one native confession_available interaction exists; event presentation fires only on a live false-to-true transition, never merely because an active state was restored from a save.",
+      "canonical_owner": "The two native confessional WorldGameObject.custom_interaction_events lists for church_budka_1 and church_budka_2.",
+      "final_writer_or_commit_point": "WorldGameObject.RedrawBubble(bool?) is called after native add/remove/consume mutations. DropsList.FromGameSave prefix disarms Keeper's Alerts before restoration; MainGame.OnGameStartedPlaying postfix performs the final silent canonical resync after host reconstruction and then re-arms live transitions.",
+      "blast_radius": [
+        "WorldGameObject.RedrawBubble postfix filtered immediately to the two confessionals",
+        "DropsList.FromGameSave prefix changes only Keeper's Alerts internal arming state",
+        "MainGame.OnGameStartedPlaying postfix performs read-only resync"
+      ],
+      "preserved_invariants": [
+        "Stock confession RNG and daily roll",
+        "PrayerClarity Rebalanced effective probability",
+        "Native interaction consumption and rewards",
+        "Native save/load serialization",
+        "Unrelated WGO bubbles"
+      ],
+      "acceptance_evidence": "Existing active confession after load shows persistent state without sound/transient; a later native unavailable-to-available transition produces exactly one event cue; consuming the final available confession clears the persistent state.",
+      "evidence_refs": [
+        "docs/STATE_OWNERSHIP_RESEARCH.md",
+        "docs/PRODUCTION_GATE_0.1.0.md",
+        "accepted PrayerClarity confession lifecycle evidence"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "confession-event-cue",
+      "observable_property": "A live confession unavailable-to-available transition plays exactly one short stock bell_single cue.",
+      "canonical_owner": "Graveyard Keeper Sounds.PlaySound(string, Vector2?, bool, float) / MasterAudio stock sound group bell_single.",
+      "final_writer_or_commit_point": "The native Sounds.PlaySound call is the final game-audio consumer; Keeper's Alerts makes one request after the canonical state transition is observed.",
+      "blast_radius": [
+        "One stock audio play request on the confession false-to-true transition"
+      ],
+      "preserved_invariants": [
+        "Stock sermon/prayer audio",
+        "Stock donkey arrival audio",
+        "Unrelated sound groups and mixer configuration",
+        "No extracted audio shipped"
+      ],
+      "acceptance_evidence": "bell_single was identified as a real stock sound and directly A/B auditioned in the installed game against chorus_short; the user selected bell_single as exactly the desired cue.",
+      "evidence_refs": [
+        "docs/CHURCH_PRAY_SOUND_ASSET_EVIDENCE.md",
+        "docs/PRODUCTION_GATE_0.1.0.md",
+        "Audio Compare Console 0.1.0 accepted runtime result"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "confession-transient-visual",
+      "observable_property": "A live confession false-to-true transition shows one short prayer-symbol notification using the stock corpse-arrival presentation grammar without modifying the stock corpse notification.",
+      "canonical_owner": "Stock UI Root/NewBodyArrivedPanel/BodyArrivedPanel and NewBodyArrivedGUI.Display lifecycle.",
+      "final_writer_or_commit_point": "A private clone of BodyArrivedPanel retains NewBodyArrivedGUI as the animation owner; its BodyImage is hidden and its cloned tiny_font PlusText is changed to (pray_bubble).",
+      "blast_radius": [
+        "One private cloned notification panel under the existing NewBodyArrivedPanel parent"
+      ],
+      "preserved_invariants": [
+        "GUIElements.me.body_arrived_gui stock instance",
+        "Stock corpse arrival timings and behavior",
+        "Unrelated HUD/UI",
+        "Prayer icon semantic remains native (pray_bubble)"
+      ],
+      "acceptance_evidence": "Integrated candidate visual check confirms the prayer toast appears once, is readable, and the stock corpse toast remains unchanged.",
+      "evidence_refs": [
+        "docs/PRESENTATION_RUNTIME_ACCEPTANCE.md",
+        "docs/TRANSITION_PRESENTATION_RESEARCH.md",
+        "docs/PRODUCTION_GATE_0.1.0.md"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "corpse-persistent-state",
+      "observable_property": "Persistent corpse reminder is active exactly while at least one uncollected loose Body occupies the currently applicable native delivery corridor.",
+      "canonical_owner": "DropsList.me.drops plus native delivery anchors donkey_cemetery_point or repaired morgue_throw_out.",
+      "final_writer_or_commit_point": "DropsList.Add establishes a new loose Body; ordinary collection and overhead Body pickup have committed is_collected=true before DropResGameObject.DestroyLinkedHint; final restored state is available before MainGame.OnGameStartedPlaying.",
+      "blast_radius": [
+        "DropsList.Add postfix filtered to successful Body adds",
+        "DropResGameObject.DestroyLinkedHint postfix filtered to collected Bodies",
+        "Shared load disarm and final game-start resync"
+      ],
+      "preserved_invariants": [
+        "Donkey schedule and delivery",
+        "Stock corpse bell/toast",
+        "Body physics and pickup",
+        "Morgue occupancy accounting",
+        "Native save data",
+        "Unrelated drops"
+      ],
+      "acceptance_evidence": "Repaired-chute delivery makes indicator appear; pickup clears it; save/load with waiting corpse restores it; an unrelated loose Body elsewhere does not trigger.",
+      "evidence_refs": [
+        "docs/CORPSE_RECEIVING_AREA_CLOSURE.md",
+        "docs/CORPSE_WAITING_STATE_RUNTIME.md",
+        "docs/PRODUCTION_GATE_0.1.0.md"
+      ],
+      "state": "READY"
+    },
+    {
+      "id": "persistent-hud-presentation",
+      "observable_property": "Corpse and confession indicators are small native-style HUD children visible only while their states are actionable, can coexist, and hide/show with the stock HUD.",
+      "canonical_owner": "UI Root/HUD/hud left under the stock HUD panel and its existing screen-size anchoring lifecycle.",
+      "final_writer_or_commit_point": "Private child widgets under hud left are rendered by native NGUI; HUD.Open postfix re-attaches/refreshes them when needed, while HUD.Hide parent deactivation hides them automatically.",
+      "blast_radius": [
+        "One private Keeper's Alerts child container under hud left",
+        "Cloned stock BodyImage for corpse indicator",
+        "Cloned stock tiny_font label using (pray_bubble) for confession indicator"
+      ],
+      "preserved_invariants": [
+        "Stock HUD transforms and anchors",
+        "Stock HUD Open/Hide behavior",
+        "Unrelated HUD widgets",
+        "No raw-screen positioning for persistent indicators"
+      ],
+      "acceptance_evidence": "Runtime candidate check confirms both indicators at normal gameplay, menus hide/show them with HUD, coexist without stock-HUD overlap, and scale/placement are visually acceptable.",
+      "evidence_refs": [
+        "docs/PRESENTATION_RUNTIME_ACCEPTANCE.md",
+        "docs/PRODUCTION_GATE_0.1.0.md"
+      ],
+      "state": "READY"
+    }
+  ]
+}
