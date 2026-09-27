@@ -53,6 +53,7 @@ namespace KeepersAlerts
         private bool _corpseWaiting;
         private bool _cuesArmed;
         private bool _pendingConfessionCue;
+        private bool _hudAttachWarningLogged;
         private bool _runtimeFailed;
 
         private void Awake()
@@ -82,7 +83,7 @@ namespace KeepersAlerts
                 _hudPresentation = new HudPresentation();
                 _transientPresenter = new ConfessionTransientPresenter(
                     this,
-                    OnPresentationFailure);
+                    OnTransientPresentationFailure);
 
                 _harmony = new Harmony(PluginGuid);
                 InstallPatches();
@@ -351,14 +352,26 @@ namespace KeepersAlerts
 
         private void OnHudOpened(object hud)
         {
+            var wasAttached = _hudPresentation != null
+                && _hudPresentation.IsAttachedTo(hud);
             var attached = _hudPresentation != null
                 && _hudPresentation.EnsureAttached(hud);
 
             if (!attached)
             {
-                Logger.LogWarning(
-                    "Keeper's Alerts could not attach its HUD indicators "
-                    + "to the verified hud left owner.");
+                if (!_hudAttachWarningLogged)
+                {
+                    _hudAttachWarningLogged = true;
+                    Logger.LogWarning(
+                        "Keeper's Alerts could not attach its HUD indicators "
+                        + "to the verified hud left owner.");
+                }
+            }
+            else
+            {
+                _hudAttachWarningLogged = false;
+                if (!wasAttached)
+                    Logger.LogInfo("Keeper's Alerts HUD presentation attached.");
             }
 
             ResyncCorpse("HUD.Open");
@@ -370,8 +383,6 @@ namespace KeepersAlerts
             if (_pendingConfessionCue && _confessionAvailable)
                 EmitConfessionCue();
 
-            if (attached)
-                Logger.LogInfo("Keeper's Alerts HUD presentation attached.");
         }
 
         private void ResyncConfession(bool allowCue, string source)
@@ -640,9 +651,18 @@ namespace KeepersAlerts
                 _confessionInitialized && _confessionAvailable);
         }
 
-        private void OnPresentationFailure(string stage, Exception ex)
+        private void OnTransientPresentationFailure(
+            string stage,
+            Exception ex)
         {
-            DisableAfterFailure(stage, ex);
+            Logger.LogError(
+                "Keeper's Alerts "
+                + stage
+                + " disabled after presentation failure: "
+                + ex.GetType().Name
+                + ": "
+                + ex.Message
+                + ". Persistent reminders and audio remain active.");
         }
 
         private void DisableAfterFailure(string stage, Exception ex)
