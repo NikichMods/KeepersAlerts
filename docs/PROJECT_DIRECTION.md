@@ -11,19 +11,23 @@ The mod is informational. It should feel like missing vanilla feedback was resto
 
 ## Core scope
 
-### Delivered corpse waiting
+### Corpse waiting
 
-Preserve the stock corpse-arrival behavior unchanged and add a persistent reminder only while the delivered loose corpse still warrants player attention.
+Preserve the stock corpse-arrival behavior unchanged and add a persistent reminder while a loose Body still occupies the native corpse receiving/delivery area.
 
-The stock transient notification path is verified as:
+The stock transient path is verified as:
 
 `Flow_BodyArrivedNotify -> NewBodyArrivedGUI.Display()`
+
+The stock arrival graph also uses `donkey_bell`.
+
+The persistent reminder should reflect current actionable world state, not maintain a parallel historical “delivery happened” flag unless native state later proves insufficient.
 
 ### Confession available
 
 Notify when at least one native `confession_available` interaction exists, then keep a persistent reminder until none remain.
 
-Do not duplicate or predict the roll. The canonical availability state is the host-owned confessional `custom_interaction_events` list, which is already serialized/restored by the game.
+Do not duplicate or predict the roll. Canonical availability is the host-owned confessional `custom_interaction_events` list, which is serialized/restored by the game.
 
 The verified stock local icon semantic is `(pray_bubble)`.
 
@@ -56,15 +60,15 @@ Transient and persistent feedback serve different jobs:
 
 For corpse delivery, preserve the game's native transient path.
 
-For confession, first investigate whether the dedicated corpse-arrival UI family can be reused or mirrored more faithfully than a generic custom toast.
+For confession, inspect whether the dedicated corpse-arrival UI family can be reused or mirrored more faithfully than a generic custom toast.
 
-Persistent indicators should use verified native NGUI/HUD lifecycle and anchoring. Do not position against raw screen dimensions.
+Persistent indicators should use verified native NGUI/HUD lifecycle and anchoring. Do not position them by raw screen arithmetic.
 
 No numeric confession count is currently required.
 
 ## State ownership summary
 
-See `docs/STATE_OWNERSHIP_RESEARCH.md` for evidence.
+See `docs/STATE_OWNERSHIP_RESEARCH.md`.
 
 ### Confession
 
@@ -81,10 +85,12 @@ Implication: do not persist a Keeper's Alerts confession flag.
 Established:
 - ordinary donkey delivery creates a real Body `DropResGameObject`;
 - loose drops live in `DropsList.me.drops` and are serialized/restored by the host;
-- collection removes the loose drop;
-- `cur_bodies_count` is general morgue occupancy and is **not** a valid "delivered corpse still waiting" flag.
+- runtime testing proves the delivered loose body is reconstructed after load with the same saved position/zone and is removed after pickup;
+- Unity instance identity changes across reconstruction and must not be treated as persistent;
+- `cur_bodies_count` is general morgue occupancy and is not the reminder state;
+- the host does not save an explicit “delivered by donkey” provenance marker.
 
-Preferred research direction: track the actual delivered loose drop during the session and determine whether its native position/zone can reconstruct provenance safely after load.
+Current semantic direction: observe **loose Body occupancy of the bounded native receiving area** rather than persist a parallel provenance flag. This remains truthful to the actionable player state, with a documented edge case if another body is deliberately placed in that same area.
 
 ## Current evidence gates
 
@@ -92,22 +98,22 @@ Preferred research direction: track the actual delivered loose drop during the s
 
 **BLOCKED — presentation/lifecycle research only.**
 
-The core state owner and persistence are established. Remaining:
-- verify the least-sufficient transition-hook family and blast radius;
+State ownership and persistence are established. Remaining:
+- verify least-sufficient transition hooks and blast radius;
 - verify transient presentation owner;
 - verify persistent HUD anchor/lifecycle;
-- identify a suitable native church/confession sound, or make an explicit product choice if none exists.
+- identify a suitable native church/confession sound or make an explicit product choice if none exists.
 
 ### Corpse persistent reminder
 
-**BLOCKED — state reconstruction + presentation research only.**
+**BLOCKED — bounded receiving-area + presentation research only.**
 
-The delivery path, loose-drop lifecycle and native persistence are established. Remaining:
-- prove a sufficiently narrow post-load predicate for the donkey-delivered loose corpse;
-- choose the least-sufficient event/query seam;
+The delivery path, loose-drop lifecycle and save/load reconstruction are established. Remaining:
+- verify a bounded receiving-area predicate for both pre-repair and repaired-chute states;
+- choose the least-sufficient live transition/resync seam;
 - verify persistent HUD anchor/lifecycle.
 
-Do not use `cur_bodies_count` as the reminder state.
+Do not use `cur_bodies_count`.
 
 ## Acceptance invariants
 
@@ -120,4 +126,4 @@ A future implementation must not change:
 - unrelated UI/audio;
 - save/load semantics.
 
-Runtime acceptance should exercise the real native path and include appearance, clear and save/load only where those behaviors are touched. Do not repeat already accepted upstream mechanics tests without a concrete reason.
+Runtime acceptance should exercise the real native path and include only behavior newly touched by a candidate. Do not repeat already accepted upstream mechanics tests without a concrete reason.
