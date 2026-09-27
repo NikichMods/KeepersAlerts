@@ -302,20 +302,20 @@ namespace KeepersAlerts
 
         private IEnumerator ShowWhenFree()
         {
+            if (!EnsurePrepared())
+            {
+                _showRoutine = null;
+                yield break;
+            }
+
+            while ((_stockPanel != null && _stockPanel.activeSelf)
+                || (_clonePanel != null && _clonePanel.activeSelf))
+            {
+                yield return null;
+            }
+
             try
             {
-                if (!EnsurePrepared())
-                {
-                    _showRoutine = null;
-                    yield break;
-                }
-
-                while ((_stockPanel != null && _stockPanel.activeSelf)
-                    || (_clonePanel != null && _clonePanel.activeSelf))
-                {
-                    yield return null;
-                }
-
                 if (_cloneGui != null)
                     _displayMethod.Invoke(_cloneGui, null);
             }
