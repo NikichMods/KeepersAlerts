@@ -91,3 +91,32 @@ Final perceptual acceptance still belongs in the integrated runtime candidate: v
 The supplied archive did not include `resources.assets.resS`.
 
 It is **not required** to identify or reuse the MasterAudio group. It would only be useful if we wanted to extract/listen to the underlying streamed audio clip outside the game, which is not required for implementation and is not necessary for the current product decision.
+
+
+## Better native candidate: `bell_single`
+
+Direct search of the same installed `resources.assets` found a separate stock sound id:
+
+`bell_single`
+
+This is not inferred from an object name. It is explicitly invoked by three serialized FlowCanvas nodes:
+
+`Flow_PlaySound(sound="bell_single")`
+
+Each of those story flows immediately waits `1.5` seconds after playback, which is consistent with a short one-shot cue.
+
+The three verified uses are refugee-story dialogue/notification flows (`refugee_s47_*`, `refugee_s55_*`), not the church preaching flow.
+
+Separately, the stock church preaching flow explicitly invokes:
+
+`Flow_PlaySound(sound="chorus")`
+
+Therefore:
+- `bell_single` is a real reusable stock sound id;
+- it is distinct from the sermon/prayer chorus;
+- current evidence does **not** tie `bell_single` to a church bell tower;
+- its exact timbre has not yet been perceptually verified.
+
+For Keeper's Alerts, `bell_single` is now the preferred first confession-notification audio candidate because its semantics and duration appear closer to a brief remote alert than `chorus_short`.
+
+Final acceptance requires hearing it in the integrated candidate; do not claim from the identifier alone that it is specifically a church bell.
