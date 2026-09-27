@@ -52,3 +52,20 @@ Live sliders expose:
 ## Scope
 
 Research DLL only. It must never ship with the Nexus release.
+
+
+## Frozen artifact identity
+
+- exact source commit: `5f83ad5d3181c64bebfb476bd34434513c7f751e`
+- GitHub Actions run: `36357054461`
+- job: `108726778732`
+- artifact ID: `10944422649`
+- artifact ZIP digest: `sha256:af20644db93b61480131cc93299cd74cae62c0b53d63e98fbfe334f6cc0ecef7`
+- DLL: `KeepersAlerts.RuntimeTestConsole.0.1.0.dll`
+- DLL size: `23,552 bytes`
+- DLL SHA-256: `8122b1eb25510a985264de1f3d2a7cc91613d5befbe755ec25b4c26ab7539f48`
+- build: `0 warnings / 0 errors`
+
+The downloaded artifact was independently extracted and its DLL size/SHA-256 matched CI.
+
+Do not rebuild or replace different bytes under console version 0.1.0.
