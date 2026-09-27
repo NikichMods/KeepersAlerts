@@ -45,3 +45,16 @@ The target finder includes inactive objects via `Resources.FindObjectsOfTypeAll<
 6. Return that report.
 
 The probe keeps waiting until the verified target exists, so there is no short startup timing window.
+
+
+## Frozen build identity
+
+- exact source commit: `dc4997a31aba446c1e020529c67f7c64de75c1aa`
+- GitHub Actions run: `36347907757`
+- artifact ID: `10940952540`
+- DLL: `KeepersAlerts.ChurchPraySoundProbe.0.1.1.dll`
+- size: `16384 bytes`
+- SHA-256: `51717dc1021b9db131d68e6cc50a193f01f33f87349fc8f74f129d528175d151`
+- build: `0 warnings / 0 errors`
+
+Do not rebuild different bytes under probe version 0.1.1. Any source change after this point requires a new probe version.
