@@ -45,3 +45,16 @@ Each click emits concise before/after markers to the normal BepInEx log.
 Install the DLL, load normal gameplay, click both buttons, and report which sound better matches the desired short remote church/confession cue.
 
 No log is required unless a button fails to produce sound.
+
+
+## Frozen artifact identity
+
+- exact source commit: `6da95e5ae11a2542cb3cb8816c61b699832e9f4a`
+- GitHub Actions run: `36349736266`
+- artifact ID: `10940764849`
+- DLL: `KeepersAlerts.AudioCompareConsole.0.1.0.dll`
+- size: `9,728 bytes`
+- SHA-256: `9fa54fb10688c4f5ae252ccf54681f64b86a83b05c0cc03b6bc36b4dbed4d1a1`
+- build: `0 warnings / 0 errors`
+
+Do not rebuild different bytes under console version 0.1.0.
