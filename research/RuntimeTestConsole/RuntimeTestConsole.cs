@@ -16,23 +16,24 @@ namespace KeepersAlertsResearch
             "nikichmods.keepersalerts.research.runtimetestconsole";
         private const string PluginName =
             "Keeper's Alerts Runtime Test Console";
-        private const string PluginVersion = "0.1.1";
+        private const string PluginVersion = "0.1.2";
 
         private const string ConfessionEvent = "confession_available";
         private const string Confessional1 = "church_budka_1";
         private const string Confessional2 = "church_budka_2";
+        private const string DonkeySound = "donkey_bell";
 
-        // Working UI baseline selected from the current preferred screenshot.
-        private const float BaselineCorpseX = 133.92f;
-        private const float BaselineCorpseY = 26.75f;
+        // Accepted working UI baseline. Persistent values are energy-bar-local.
+        private const float BaselineFirstSlotOffset = 24.92f;
+        private const float BaselineSlotStep = 30.68f;
+        private const float BaselineCorpseY = -6.25f;
         private const float BaselineCorpseScale = 0.62f;
-        private const float BaselineConfessionX = 164.60f;
-        private const float BaselineConfessionY = 31.12f;
+        private const float BaselineConfessionY = -1.88f;
         private const float BaselineConfessionScale = 0.95f;
         private const float BaselineToastIconX = 5.53f;
         private const float BaselineToastIconY = 14.06f;
-        private const float BaselineToastIconScale = 1.95f;
-        private const float BaselineToastVisibleY = 45.79f;
+        private const float BaselineToastIconScale = 1.67f;
+        private const float BaselineToastVisibleY = 80f;
 
         private static readonly Guid SupportedGameMvid =
             new Guid("6f50b8e7-156b-49ac-bbe8-7505894b2364");
@@ -74,6 +75,7 @@ namespace KeepersAlertsResearch
         private Type _guiElementsType;
         private Type _newBodyArrivedGuiType;
         private Type _uiWidgetType;
+        private Type _soundsType;
 
         private MethodInfo _getWgosByObjId;
         private MethodInfo _addInteractionEvent;
@@ -92,7 +94,9 @@ namespace KeepersAlertsResearch
         private PropertyInfo _guiElementsMe;
         private FieldInfo _guiBodyArrived;
         private MethodInfo _bodyArrivedDisplay;
+        private MethodInfo _playSound;
         private PropertyInfo _uiWidgetAlpha;
+        private PropertyInfo _uiWidgetWidth;
 
         private object _testConfessional;
         private bool _createdNativeConfession;
@@ -101,10 +105,10 @@ namespace KeepersAlertsResearch
         private bool _calibrationCaptured;
         private bool _holdConfessionToast;
 
-        private float _corpseX;
+        private float _firstSlotOffset;
+        private float _slotStep;
         private float _corpseY;
         private float _corpseScale;
-        private float _confessionX;
         private float _confessionY;
         private float _confessionScale;
 
@@ -193,6 +197,7 @@ namespace KeepersAlertsResearch
             _dropsListType = RequireGameType("DropsList");
             _guiElementsType = RequireGameType("GUIElements");
             _newBodyArrivedGuiType = RequireGameType("NewBodyArrivedGUI");
+            _soundsType = RequireGameType("Sounds");
             _uiWidgetType = FindTypeAcrossAssemblies("UIWidget");
 
             if (_uiWidgetType == null)
@@ -295,12 +300,25 @@ namespace KeepersAlertsResearch
                 AllInstance,
                 Type.EmptyTypes);
 
+            _playSound = RequireMethod(
+                _soundsType,
+                "PlaySound",
+                AllStatic,
+                new[] { typeof(string), typeof(Vector2?), typeof(bool), typeof(float) });
+
             _uiWidgetAlpha = _uiWidgetType.GetProperty(
                 "alpha",
                 AllInstance);
 
             if (_uiWidgetAlpha == null || !_uiWidgetAlpha.CanWrite)
                 throw new MissingMemberException("UIWidget", "alpha");
+
+            _uiWidgetWidth = _uiWidgetType.GetProperty(
+                "width",
+                AllInstance);
+
+            if (_uiWidgetWidth == null)
+                throw new MissingMemberException("UIWidget", "width");
         }
 
         private bool TryBindProduction()
@@ -440,9 +458,12 @@ namespace KeepersAlertsResearch
             GUILayout.BeginHorizontal();
             if (GUILayout.Button("Preview confession cue", GUILayout.Height(30f)))
                 InvokePresentationCue();
-            if (GUILayout.Button("Preview stock corpse toast", GUILayout.Height(30f)))
-                PreviewStockCorpseToast();
+            if (GUILayout.Button("Preview stock corpse cue", GUILayout.Height(30f)))
+                PreviewStockCorpseCue();
             GUILayout.EndHorizontal();
+
+            if (GUILayout.Button("Preview BOTH cues", GUILayout.Height(30f)))
+                PreviewBothCues();
 
             bool holdNext = GUILayout.Toggle(
                 _holdConfessionToast,
@@ -501,19 +522,19 @@ namespace KeepersAlertsResearch
 
             if (_calibrationCaptured)
             {
-                float corpseX = SliderRow(
-                    "Corpse X", _corpseX, -120f, 300f);
+                float firstSlotOffset = SliderRow(
+                    "First slot offset", _firstSlotOffset, 0f, 80f);
+                float slotStep = SliderRow(
+                    "Slot spacing", _slotStep, 10f, 80f);
                 float corpseY = SliderRow(
-                    "Corpse Y", _corpseY, -180f, 120f);
+                    "Corpse Y", _corpseY, -40f, 40f);
                 float corpseS = SliderRow(
-                    "Corpse scale", _corpseScale, 0.20f, 4f);
+                    "Corpse scale", _corpseScale, 0.20f, 2f);
 
-                float confessionX = SliderRow(
-                    "Confession X", _confessionX, -120f, 300f);
                 float confessionY = SliderRow(
-                    "Confession Y", _confessionY, -180f, 120f);
+                    "Confession Y", _confessionY, -40f, 40f);
                 float confessionS = SliderRow(
-                    "Confession scale", _confessionScale, 0.20f, 4f);
+                    "Confession scale", _confessionScale, 0.20f, 2f);
 
                 GUILayout.BeginHorizontal();
                 if (GUILayout.Button("Reset Persistent", GUILayout.Height(28f)))
@@ -544,10 +565,10 @@ namespace KeepersAlertsResearch
                     1f);
 
                 bool changed =
-                    !Approximately(corpseX, _corpseX)
+                    !Approximately(firstSlotOffset, _firstSlotOffset)
+                    || !Approximately(slotStep, _slotStep)
                     || !Approximately(corpseY, _corpseY)
                     || !Approximately(corpseS, _corpseScale)
-                    || !Approximately(confessionX, _confessionX)
                     || !Approximately(confessionY, _confessionY)
                     || !Approximately(confessionS, _confessionScale)
                     || !Approximately(panelX, _toastPanelX)
@@ -558,10 +579,10 @@ namespace KeepersAlertsResearch
                     || !Approximately(visibleY, _toastVisibleY)
                     || !Approximately(backgroundAlpha, _toastBackgroundAlpha);
 
-                _corpseX = corpseX;
+                _firstSlotOffset = firstSlotOffset;
+                _slotStep = slotStep;
                 _corpseY = corpseY;
                 _corpseScale = corpseS;
-                _confessionX = confessionX;
                 _confessionY = confessionY;
                 _confessionScale = confessionS;
                 _toastPanelX = panelX;
@@ -583,7 +604,7 @@ namespace KeepersAlertsResearch
                 GUILayout.EndHorizontal();
 
                 GUILayout.Label(
-                    "Baseline: corpse 133.92/26.75/0.62; confession 164.60/31.12/0.95.");
+                    "Baseline: offset 24.92; spacing 30.68; corpse Y -6.25 / 0.62; confession Y -1.88 / 0.95.");
             }
             else
             {
@@ -670,33 +691,67 @@ namespace KeepersAlertsResearch
             }
         }
 
-        private void PreviewStockCorpseToast()
+        private void PreviewStockCorpseCue()
         {
             try
             {
-                object gui = _guiElementsMe.GetValue(null, null);
-                if (IsUnityNull(gui))
-                {
-                    _status = "GUIElements.me is unavailable.";
-                    return;
-                }
-
-                Component stock =
-                    _guiBodyArrived.GetValue(gui) as Component;
-
-                if (stock == null)
-                {
-                    _status = "Stock body-arrival GUI is unavailable.";
-                    return;
-                }
-
-                _bodyArrivedDisplay.Invoke(stock, null);
-                _status = "Displayed the stock corpse-arrival visual.";
+                PlayStockCorpseCue();
+                _status =
+                    "Played stock donkey_bell + stock corpse-arrival visual.";
             }
             catch (Exception ex)
             {
-                Fail("stock corpse toast", ex);
+                Fail("stock corpse cue", ex);
             }
+        }
+
+        private void PreviewBothCues()
+        {
+            try
+            {
+                if (!EnsureProduction())
+                    return;
+
+                PlayStockCorpseCue();
+                _playCue.Invoke(_production, null);
+                _showToast.Invoke(_production, null);
+
+                if (_holdConfessionToast)
+                    MaintainHeldConfessionToast();
+
+                _status =
+                    "Played stock corpse cue and confession cue together.";
+            }
+            catch (Exception ex)
+            {
+                Fail("combined cue preview", ex);
+            }
+        }
+
+        private void PlayStockCorpseCue()
+        {
+            object gui = _guiElementsMe.GetValue(null, null);
+            if (IsUnityNull(gui))
+                throw new InvalidOperationException("GUIElements.me is unavailable.");
+
+            Component stock =
+                _guiBodyArrived.GetValue(gui) as Component;
+
+            if (stock == null)
+                throw new InvalidOperationException(
+                    "Stock body-arrival GUI is unavailable.");
+
+            _playSound.Invoke(
+                null,
+                new object[]
+                {
+                    DonkeySound,
+                    null,
+                    true,
+                    0f
+                });
+
+            _bodyArrivedDisplay.Invoke(stock, null);
         }
 
         private void RestoreNativeState()
@@ -1160,7 +1215,12 @@ namespace KeepersAlertsResearch
                 if (!EnsureProduction())
                     return false;
 
-                _renderHud.Invoke(_production, null);
+                object gui = _guiElementsMe.GetValue(null, null);
+                if (IsUnityNull(gui)
+                    || IsUnityNull(_guiBodyArrived.GetValue(gui)))
+                {
+                    return false;
+                }
 
                 GameObject corpse =
                     _corpseIndicator.GetValue(_production) as GameObject;
@@ -1173,7 +1233,8 @@ namespace KeepersAlertsResearch
                     return false;
 
                 Transform toastIcon =
-                    FindDescendant(toast.transform, "PlusText");
+                    FindDescendant(toast.transform, "PrayerIcon")
+                    ?? FindDescendant(toast.transform, "PlusText");
                 Transform background =
                     FindDescendant(toast.transform, "Background");
 
@@ -1210,11 +1271,11 @@ namespace KeepersAlertsResearch
                             backgroundWidget,
                             null));
 
-                _corpseX = BaselineCorpseX;
+                _firstSlotOffset = BaselineFirstSlotOffset;
+                _slotStep = BaselineSlotStep;
                 _corpseY = BaselineCorpseY;
                 _corpseScale = BaselineCorpseScale;
 
-                _confessionX = BaselineConfessionX;
                 _confessionY = BaselineConfessionY;
                 _confessionScale = BaselineConfessionScale;
 
@@ -1255,18 +1316,66 @@ namespace KeepersAlertsResearch
                 GameObject toast =
                     _confessionToast.GetValue(_production) as GameObject;
 
-                if (corpse != null)
-                {
-                    SetXY(corpse.transform, _corpseX, _corpseY);
-                    SetUniformScale(corpse.transform, _corpseScale);
-                }
+                Transform energyBar =
+                    corpse != null
+                        ? corpse.transform.parent
+                        : confession != null
+                            ? confession.transform.parent
+                            : null;
 
-                if (confession != null)
+                if (energyBar != null)
                 {
-                    SetXY(confession.transform, _confessionX, _confessionY);
-                    SetUniformScale(
-                        confession.transform,
-                        _confessionScale);
+                    Component energyWidget =
+                        energyBar.GetComponent(_uiWidgetType);
+
+                    if (energyWidget != null)
+                    {
+                        float barWidth =
+                            Convert.ToSingle(
+                                _uiWidgetWidth.GetValue(
+                                    energyWidget,
+                                    null));
+                        float x =
+                            barWidth + _firstSlotOffset;
+
+                        bool corpseOn =
+                            Convert.ToBoolean(
+                                _corpseActive.GetValue(_production));
+                        bool confessionOn =
+                            Convert.ToBoolean(
+                                _confessionActive.GetValue(_production));
+
+                        if (corpse != null)
+                        {
+                            SetUniformScale(
+                                corpse.transform,
+                                _corpseScale);
+
+                            if (corpseOn)
+                            {
+                                SetXY(
+                                    corpse.transform,
+                                    x,
+                                    _corpseY);
+                                x += _slotStep;
+                            }
+                        }
+
+                        if (confession != null)
+                        {
+                            SetUniformScale(
+                                confession.transform,
+                                _confessionScale);
+
+                            if (confessionOn)
+                            {
+                                SetXY(
+                                    confession.transform,
+                                    x,
+                                    _confessionY);
+                            }
+                        }
+                    }
                 }
 
                 if (toast != null)
@@ -1281,6 +1390,9 @@ namespace KeepersAlertsResearch
 
                     Transform toastIcon =
                         FindDescendant(
+                            toast.transform,
+                            "PrayerIcon")
+                        ?? FindDescendant(
                             toast.transform,
                             "PlusText");
 
@@ -1414,10 +1526,10 @@ namespace KeepersAlertsResearch
             if (!_calibrationCaptured)
                 return;
 
-            _corpseX = BaselineCorpseX;
+            _firstSlotOffset = BaselineFirstSlotOffset;
+            _slotStep = BaselineSlotStep;
             _corpseY = BaselineCorpseY;
             _corpseScale = BaselineCorpseScale;
-            _confessionX = BaselineConfessionX;
             _confessionY = BaselineConfessionY;
             _confessionScale = BaselineConfessionScale;
 
@@ -1457,14 +1569,14 @@ namespace KeepersAlertsResearch
         {
             string line =
                 "UI_CALIBRATION "
-                + "corpse=("
-                + _corpseX.ToString("0.00") + ","
-                + _corpseY.ToString("0.00") + ","
-                + _corpseScale.ToString("0.00") + ") "
-                + "confession=("
-                + _confessionX.ToString("0.00") + ","
-                + _confessionY.ToString("0.00") + ","
-                + _confessionScale.ToString("0.00") + ") "
+                + "persistent=("
+                + "offset=" + _firstSlotOffset.ToString("0.00")
+                + ",step=" + _slotStep.ToString("0.00")
+                + ",corpseY=" + _corpseY.ToString("0.00")
+                + ",corpseScale=" + _corpseScale.ToString("0.00")
+                + ",confessionY=" + _confessionY.ToString("0.00")
+                + ",confessionScale=" + _confessionScale.ToString("0.00")
+                + ") "
                 + "transientPanel=("
                 + _toastPanelX.ToString("0.00") + ","
                 + _toastPanelScale.ToString("0.00") + ") "
