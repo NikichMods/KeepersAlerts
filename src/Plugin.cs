@@ -15,7 +15,7 @@ namespace KeepersAlerts
     {
         public const string PluginGuid = "nikichmods.keepersalerts";
         public const string PluginName = "Keeper's Alerts";
-        public const string PluginVersion = "0.1.1";
+        public const string PluginVersion = "0.1.3";
 
         private static readonly Guid SupportedGameMvid =
             new Guid("6f50b8e7-156b-49ac-bbe8-7505894b2364");
@@ -38,6 +38,19 @@ namespace KeepersAlerts
         private const float CorridorHalfWidth = 96f;
         private const float CorridorBackward = 48f;
         private const float CorridorForward = 544f;
+
+        // Accepted 2560x1440 / HUD-scale 1.1 calibration, expressed in
+        // energy-bar-local NGUI coordinates so the layout follows the host HUD.
+        private const float IndicatorFirstSlotOffset = 24.92f;
+        private const float IndicatorSlotStep = 30.68f;
+        private const float CorpseIndicatorY = -6.25f;
+        private const float CorpseIndicatorScale = 0.62f;
+        private const float ConfessionIndicatorY = -1.88f;
+        private const float ConfessionIndicatorScale = 0.95f;
+
+        private const float ConfessionToastIconX = 5.53f;
+        private const float ConfessionToastIconY = 14.06f;
+        private const float ConfessionToastIconScale = 1.67f;
 
         internal static Plugin Instance;
 
@@ -64,6 +77,7 @@ namespace KeepersAlerts
         private PropertyInfo _guiElementsMeProperty;
         private FieldInfo _guiHudField;
         private FieldInfo _guiBodyArrivedField;
+        private FieldInfo _hudBarEnergyField;
 
         private MethodInfo _getWgosByObjId;
         private MethodInfo _getWgosByCustomTag;
@@ -83,6 +97,7 @@ namespace KeepersAlerts
         private GameObject _confessionIndicator;
         private GameObject _confessionToast;
         private Component _confessionToastController;
+        private Component _energyBar;
 
         private void Awake()
         {
@@ -134,6 +149,7 @@ namespace KeepersAlerts
             _confessionIndicator = null;
             _confessionToast = null;
             _confessionToastController = null;
+            _energyBar = null;
 
             if (ReferenceEquals(Instance, this))
                 Instance = null;
@@ -191,6 +207,8 @@ namespace KeepersAlerts
                 RequireField(_guiElementsType, "hud", AllInstance);
             _guiBodyArrivedField =
                 RequireField(_guiElementsType, "body_arrived_gui", AllInstance);
+            _hudBarEnergyField =
+                RequireField(_hudType, "bar_energy", AllInstance);
 
             _getWgosByObjId = RequireMethod(
                 _worldMapType,
@@ -711,7 +729,8 @@ namespace KeepersAlerts
         private void EnsureHudIndicators()
         {
             if (!IsUnityNull(_corpseIndicator)
-                && !IsUnityNull(_confessionIndicator))
+                && !IsUnityNull(_confessionIndicator)
+                && !IsUnityNull(_energyBar))
             {
                 return;
             }
@@ -732,8 +751,8 @@ namespace KeepersAlerts
                     "Stock HUD or body-arrival GUI is unavailable.");
             }
 
-            Transform hudLeft =
-                FindDescendant(hud.transform, "hud left");
+            Component energyBar =
+                _hudBarEnergyField.GetValue(hud) as Component;
 
             Transform bodyImage =
                 FindDescendant(bodyArrival.transform, "BodyImage");
@@ -741,13 +760,25 @@ namespace KeepersAlerts
             Transform plusText =
                 FindDescendant(bodyArrival.transform, "PlusText");
 
-            if (hudLeft == null
+            if (energyBar == null
                 || bodyImage == null
                 || plusText == null)
             {
                 throw new InvalidOperationException(
-                    "Expected stock HUD/body-arrival presentation hierarchy is missing.");
+                    "Expected stock energy-bar/body-arrival presentation hierarchy is missing.");
             }
+
+            Component energyWidget =
+                energyBar.GetComponent(_uiWidgetType);
+
+            if (energyWidget == null
+                || Convert.ToSingle(GetMemberValue(energyWidget, "width")) <= 0f)
+            {
+                throw new InvalidOperationException(
+                    "Stock energy-bar widget geometry is unavailable.");
+            }
+
+            _energyBar = energyBar;
 
             if (IsUnityNull(_corpseIndicator))
             {
@@ -758,16 +789,16 @@ namespace KeepersAlerts
                     "KeepersAlerts_CorpseIndicator";
 
                 _corpseIndicator.transform.SetParent(
-                    hudLeft,
+                    _energyBar.transform,
                     false);
 
                 ClearWidgetAnchors(_corpseIndicator);
                 SetWidgetDepth(_corpseIndicator, 80);
-
-                _corpseIndicator.transform.localPosition =
-                    new Vector3(126f, -34f, 0f);
                 _corpseIndicator.transform.localScale =
-                    new Vector3(0.30f, 0.30f, 1f);
+                    new Vector3(
+                        CorpseIndicatorScale,
+                        CorpseIndicatorScale,
+                        1f);
                 _corpseIndicator.SetActive(false);
             }
 
@@ -780,7 +811,7 @@ namespace KeepersAlerts
                     "KeepersAlerts_ConfessionIndicator";
 
                 _confessionIndicator.transform.SetParent(
-                    hudLeft,
+                    _energyBar.transform,
                     false);
 
                 ClearWidgetAnchors(_confessionIndicator);
@@ -789,11 +820,49 @@ namespace KeepersAlerts
                     _confessionIndicator,
                     PraySymbol);
 
-                _confessionIndicator.transform.localPosition =
-                    new Vector3(158f, -34f, 0f);
                 _confessionIndicator.transform.localScale =
-                    new Vector3(1.35f, 1.35f, 1f);
+                    new Vector3(
+                        ConfessionIndicatorScale,
+                        ConfessionIndicatorScale,
+                        1f);
                 _confessionIndicator.SetActive(false);
+            }
+
+            LayoutHudIndicators();
+        }
+
+        private void LayoutHudIndicators()
+        {
+            if (IsUnityNull(_energyBar))
+                return;
+
+            Component energyWidget =
+                _energyBar.GetComponent(_uiWidgetType);
+
+            if (energyWidget == null)
+                return;
+
+            float barWidth =
+                Convert.ToSingle(
+                    GetMemberValue(energyWidget, "width"));
+
+            float x = barWidth + IndicatorFirstSlotOffset;
+
+            if (_corpseActive && !IsUnityNull(_corpseIndicator))
+            {
+                SetLocalXY(
+                    _corpseIndicator.transform,
+                    x,
+                    CorpseIndicatorY);
+                x += IndicatorSlotStep;
+            }
+
+            if (_confessionActive && !IsUnityNull(_confessionIndicator))
+            {
+                SetLocalXY(
+                    _confessionIndicator.transform,
+                    x,
+                    ConfessionIndicatorY);
             }
         }
 
@@ -842,14 +911,29 @@ namespace KeepersAlerts
 
             if (plusText != null)
             {
-                ClearWidgetAnchors(plusText.gameObject);
-                SetLabelText(plusText.gameObject, PraySymbol);
-                SetWidgetDepth(plusText.gameObject, 26);
+                GameObject prayerIcon =
+                    UnityEngine.Object.Instantiate(
+                        plusText.gameObject);
 
-                plusText.localPosition =
-                    new Vector3(6f, 5f, 0f);
-                plusText.localScale =
-                    new Vector3(1.55f, 1.55f, 1f);
+                prayerIcon.name = "PrayerIcon";
+                prayerIcon.transform.SetParent(
+                    _confessionToast.transform,
+                    false);
+
+                ClearWidgetAnchors(prayerIcon);
+                SetLabelText(prayerIcon, PraySymbol);
+                SetWidgetDepth(prayerIcon, 26);
+
+                prayerIcon.transform.localPosition =
+                    new Vector3(
+                        ConfessionToastIconX,
+                        ConfessionToastIconY,
+                        0f);
+                prayerIcon.transform.localScale =
+                    new Vector3(
+                        ConfessionToastIconScale,
+                        ConfessionToastIconScale,
+                        1f);
             }
 
             _confessionToastController =
@@ -878,6 +962,8 @@ namespace KeepersAlerts
 
                 if (!IsUnityNull(_confessionIndicator))
                     _confessionIndicator.SetActive(_confessionActive);
+
+                LayoutHudIndicators();
             }
             catch (Exception ex)
             {
@@ -942,6 +1028,20 @@ namespace KeepersAlerts
                 return;
 
             SetMemberValue(label, "text", text);
+        }
+
+        private static void SetLocalXY(
+            Transform transform,
+            float x,
+            float y)
+        {
+            if (transform == null)
+                return;
+
+            Vector3 p = transform.localPosition;
+            p.x = x;
+            p.y = y;
+            transform.localPosition = p;
         }
 
         private static Transform FindDescendant(
