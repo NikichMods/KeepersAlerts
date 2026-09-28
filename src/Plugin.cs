@@ -15,7 +15,7 @@ namespace KeepersAlerts
     {
         public const string PluginGuid = "nikichmods.keepersalerts";
         public const string PluginName = "Keeper's Alerts";
-        public const string PluginVersion = "0.1.3";
+        public const string PluginVersion = "0.1.4";
 
         private static readonly Guid SupportedGameMvid =
             new Guid("6f50b8e7-156b-49ac-bbe8-7505894b2364");
@@ -48,7 +48,7 @@ namespace KeepersAlerts
         private const float ConfessionIndicatorY = -1.88f;
         private const float ConfessionIndicatorScale = 0.95f;
 
-        private const float ConfessionToastIconX = 5.53f;
+        private const float ConfessionToastIconX = 8.89f;
         private const float ConfessionToastIconY = 14.06f;
         private const float ConfessionToastIconScale = 1.67f;
 
