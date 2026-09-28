@@ -92,8 +92,8 @@ Unless a separately gated change requires otherwise, preserve:
 Future chats must consult:
 - `AGENTS.md`
 - `docs/CHATGPT_PROJECT_INSTRUCTIONS.md`
-- `docs/PROJECT_DIRECTION.md`
-- project evidence/design docs added later
+- `docs/ARCHITECTURE.md`
+- `docs/RELEASE_ACCEPTANCE.md` when release/runtime acceptance state matters
 - `NikichMods/GraveyardKeeperResearch`
 - relevant accepted PrayerClarity evidence
 
