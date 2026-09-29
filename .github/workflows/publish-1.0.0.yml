@@ -1,0 +1,73 @@
+name: Publish Keeper's Alerts 1.0.0
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/publish-1.0.0.yml'
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: v1.0.0
+      RELEASE_TARGET: e9152da5e2df40cf61ce0c9f8276465bd92968ef
+      ARTIFACT_ID: '11061336058'
+      ARTIFACT_ZIP_SHA256: eaaa863ed5263f19c71dd2292ca48c0135644bbec9ff69dd956e484cc18002cc
+      DLL_SHA256: c2fc852921c0587f3458fb3a56de05bb04a545e6605d9d1e9f0f30a8c5f1511e
+
+    steps:
+      - name: Download accepted CI artifact
+        shell: bash
+        run: |
+          set -euo pipefail
+          gh api \
+            -H 'Accept: application/vnd.github+json' \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "/repos/$GITHUB_REPOSITORY/actions/artifacts/$ARTIFACT_ID/zip" \
+            > accepted-artifact.zip
+
+      - name: Verify accepted artifact identity
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "$ARTIFACT_ZIP_SHA256  accepted-artifact.zip" | sha256sum -c -
+          mkdir payload
+          unzip -q accepted-artifact.zip -d payload
+          test "$(find payload -type f | wc -l)" -eq 1
+          test -f payload/KeepersAlerts.dll
+          echo "$DLL_SHA256  payload/KeepersAlerts.dll" | sha256sum -c -
+
+      - name: Publish GitHub Release
+        shell: bash
+        run: |
+          set -euo pipefail
+          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            echo "Release $RELEASE_TAG already exists; refusing to replace it."
+            exit 1
+          fi
+
+          cat > release-notes.md <<'EOF'
+          Initial public release of Keeper's Alerts.
+
+          - Persistent HUD reminder while a delivered corpse is waiting.
+          - Native-style bell, popup, and persistent HUD reminder when a confession is available.
+          - Corpse/confession transient notifications remain readable for the same two real-time seconds during sleep and accelerated meditation.
+          - No mod-owned save data and no changes to corpse delivery or confession mechanics.
+          - Tested on Graveyard Keeper 1.407 (Steam/Windows) with BepInEx 5.
+
+          Install by placing `KeepersAlerts.dll` anywhere under `Graveyard Keeper/BepInEx/plugins/`.
+          EOF
+
+          gh release create "$RELEASE_TAG" \
+            "payload/KeepersAlerts.dll#KeepersAlerts.dll" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$RELEASE_TARGET" \
+            --title "Keeper's Alerts 1.0.0" \
+            --notes-file release-notes.md
