@@ -1,0 +1,59 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - 'candidate/**'
+    paths:
+      - 'src/**'
+      - 'KeepersAlerts.csproj'
+      - '.github/workflows/build.yml'
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'src/**'
+      - 'KeepersAlerts.csproj'
+      - '.github/workflows/build.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keepersalerts-build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout exact source
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Record source identity
+        run: |
+          echo "SOURCE_SHA=$(git rev-parse HEAD)" >> "$GITHUB_ENV"
+          git rev-parse HEAD
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore
+        run: dotnet restore KeepersAlerts.csproj
+
+      - name: Build
+        run: dotnet build KeepersAlerts.csproj -c Release --no-restore
+
+      - name: Upload exact build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: KeepersAlerts-${{ env.SOURCE_SHA }}
+          path: bin/ReleasePlugin/KeepersAlerts.dll
+          if-no-files-found: error
+          retention-days: 30

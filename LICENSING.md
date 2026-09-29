@@ -2,11 +2,22 @@
 
 ## Code license
 
-Original project software source is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See `LICENSE`.
+Original Keeper's Alerts source code is licensed under the **Mozilla Public License 2.0 (MPL-2.0)**. See `LICENSE`.
 
-When implementation or research source files are added, attach the MPL notice to them directly or place the standard notice/license in the relevant source directory.
+The production source file carries an SPDX MPL-2.0 notice.
 
-Files or directories with their own license/copyright notice keep those terms and are not relicensed by this project. Third-party libraries, Graveyard Keeper binaries/assets/data, decompiled host material, and other third-party content are not covered by this project's MPL grant unless explicitly stated.
+## Distribution contents
+
+The public release payload contains only `KeepersAlerts.dll`, built from the source in this repository.
+
+Keeper's Alerts does **not** redistribute:
+- Graveyard Keeper assemblies;
+- extracted game assets or audio;
+- decompiled host source;
+- research probes or the runtime test console;
+- third-party dependency binaries.
+
+BepInEx, HarmonyX and Unity references are used as build/runtime dependencies and retain their own terms. Graveyard Keeper and its assets/data remain outside this project's MPL grant.
 
 ## Community maintenance
 
