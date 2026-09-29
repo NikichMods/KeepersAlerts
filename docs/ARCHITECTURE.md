@@ -1,7 +1,7 @@
 # Architecture
 
 **Target:** Graveyard Keeper 1.407 / BepInEx 5  
-**Production version:** 0.1.4
+**Production version:** 0.1.5 candidate
 
 Keeper's Alerts is intentionally a thin observer/presentation layer. It derives current state from Graveyard Keeper and uses native UI/audio systems without changing the mechanics that create those states.
 
@@ -101,6 +101,8 @@ Preserved stock properties include:
 - visible Y = 80;
 - the stock `+` label.
 
+The stock serialized timing remains 0.5 s appear + 1.0 s hold + 0.5 s hide. Keeper's Alerts patches only the time basis used by `NewBodyArrivedGUI.RunAppearCoroutine`: its two DOTween moves use independent/unscaled updates and its hold uses `WaitForSecondsRealtime`. This applies equally to the stock corpse panel and the private confession clone, keeping the same two-second wall-clock presentation during normal play, sleep, and accelerated meditation.
+
 Only the cloned body image is hidden. A separate prayer label using the native `(pray_bubble)` symbol is added at:
 - X = 8.89;
 - Y = 14.06;
@@ -112,7 +114,7 @@ If the stock corpse popup and confession popup happen to start at the same insta
 
 ## Runtime seams
 
-Keeper's Alerts installs six Harmony patches:
+Keeper's Alerts installs seven Harmony patches:
 
 | Host seam | Patch | Purpose |
 | --- | --- | --- |
@@ -122,6 +124,7 @@ Keeper's Alerts installs six Harmony patches:
 | `DropsList.FromGameSave(...)` | prefix | disarm transition presentation during reconstruction |
 | `MainGame.OnGameStartedPlaying()` | postfix | silent authoritative post-load resync and re-arm |
 | `HUD.Open()` | postfix | attach/refresh private HUD indicators |
+| `NewBodyArrivedGUI.RunAppearCoroutine()` state-machine `MoveNext()` | transpiler | keep stock corpse/confession transient timing on real time instead of scaled game time |
 
 The mod has no per-frame `Update()`, background timer, periodic polling, or custom persistence.
 
