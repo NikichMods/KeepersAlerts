@@ -1,7 +1,7 @@
 # Release Acceptance — 1.0.0
 
 **Target:** Graveyard Keeper 1.407 / BepInEx 5  
-**Status:** **ACCEPTED** — runtime behavior and final HUD responsiveness accepted; stable build/publication bookkeeping follows this record.
+**Status:** **ACCEPTED AND PUBLISHED** — runtime behavior, final HUD responsiveness, stable artifact identity and GitHub Release publication are complete.
 
 ## Accepted player-facing behavior
 
@@ -94,6 +94,20 @@ Stable merge:
 - `main` merge commit: `a7dee87677bcf9550bb96f1d8fb3ed17a57c007e`;
 - post-merge integration run: `36629029196`;
 - post-merge build result: success.
+
+Published release:
+
+- tag: `v1.0.0`;
+- tag target: `e9152da5e2df40cf61ce0c9f8276465bd92968ef`;
+- GitHub Release ID: `399550100`;
+- GitHub Release publish run: `36635074688`;
+- release asset ID: `599291370`;
+- release asset: `KeepersAlerts.dll`;
+- release asset size: `26,112 bytes`;
+- release asset SHA-256: `c2fc852921c0587f3458fb3a56de05bb04a545e6605d9d1e9f0f30a8c5f1511e`;
+- release state: public, non-draft, non-prerelease.
+
+The published asset digest exactly matches the accepted release-head DLL.
 
 The post-merge DLL is not the stable distribution asset. The SDK appends the current Git commit SHA to `AssemblyInformationalVersion`, so rebuilding the identical production source tree at the merge commit changes binary metadata and therefore the DLL hash. The stable asset remains the exact release-head artifact above; `main` contains that release source state in its history.
 
