@@ -28,7 +28,7 @@ Core states:
 
 The intended UX direction is a short native-style event cue when a state appears plus a small persistent HUD indicator while it remains actionable.
 
-For corpse delivery, preserve the stock arrival cue and add only the missing persistent reminder.
+For corpse delivery, preserve the stock trigger, sound, popup content/geometry/easing and delivery mechanics, and add the missing persistent reminder. Accepted 1.0.0 behavior also keeps the stock 0.5 + 1.0 + 0.5 second transient lifecycle on unscaled/real time so it remains readable during accelerated sleep/meditation.
 
 For confession availability, aim for a thematically appropriate church/confession sound and a sibling transient visual treatment, then keep a persistent reminder until no confession remains available.
 
@@ -71,7 +71,7 @@ The mod is informational. Preserve native mechanics unless a separately accepted
 ## Preserved invariants
 
 Unless a separately gated change requires otherwise, preserve:
-- corpse delivery timing/mechanics and existing stock arrival behavior;
+- corpse delivery timing/mechanics and stock arrival trigger/audio/content/geometry/easing; the accepted transient time-basis exception is limited to unscaled real-time playback of the same 0.5 + 1.0 + 0.5 second profile;
 - confession RNG, rewards, daily reset and interaction behavior;
 - PrayerClarity compatibility;
 - save/load semantics;

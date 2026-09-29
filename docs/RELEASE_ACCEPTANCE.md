@@ -75,7 +75,27 @@ Accepted behavior candidate 0.1.5:
 
 ## Stable 1.0.0 artifact identity
 
-Recorded after the exact 1.0.0 release-head CI build and publication.
+Stable distribution artifact:
+
+- exact release source head: `e9152da5e2df40cf61ce0c9f8276465bd92968ef`;
+- branch: `release/1.0.0`;
+- GitHub Actions run: `36628892284`;
+- job: `109612800715`;
+- artifact ID: `11061336058`;
+- artifact ZIP SHA-256: `eaaa863ed5263f19c71dd2292ca48c0135644bbec9ff69dd956e484cc18002cc`;
+- archive contents: one file, `KeepersAlerts.dll`;
+- DLL size: `26,112 bytes`;
+- DLL SHA-256: `c2fc852921c0587f3458fb3a56de05bb04a545e6605d9d1e9f0f30a8c5f1511e`;
+- build result: 0 warnings / 0 errors.
+
+Stable merge:
+
+- release PR: #3;
+- `main` merge commit: `a7dee87677bcf9550bb96f1d8fb3ed17a57c007e`;
+- post-merge integration run: `36629029196`;
+- post-merge build result: success.
+
+The post-merge DLL is not the stable distribution asset. The SDK appends the current Git commit SHA to `AssemblyInformationalVersion`, so rebuilding the identical production source tree at the merge commit changes binary metadata and therefore the DLL hash. The stable asset remains the exact release-head artifact above; `main` contains that release source state in its history.
 
 ## Distribution boundary
 

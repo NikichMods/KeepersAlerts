@@ -6,7 +6,7 @@ Current product goal: notify the player about important remote states that are a
 - a delivered corpse is waiting;
 - at least one confession is available.
 
-The intended UX direction is native-style and unobtrusive: a short event cue (sound + transient icon) when the state appears, plus a small persistent HUD indicator while the state remains actionable. For corpse delivery, preserve the game's existing arrival behavior and add only the missing persistent reminder. For confession, aim for a thematically appropriate church/confession sound and a sibling visual treatment. Do not turn this into a generic production-completion dashboard.
+The intended UX direction is native-style and unobtrusive: a short event cue (sound + transient icon) when the state appears, plus a small persistent HUD indicator while the state remains actionable. For corpse delivery, preserve the game's delivery mechanics plus stock trigger, sound, popup content/geometry/easing and add the missing persistent reminder. Accepted 1.0.0 behavior also keeps the same stock 0.5 + 1.0 + 0.5 second transient lifecycle on unscaled/real time so it remains readable during accelerated sleep/meditation. For confession, aim for a thematically appropriate church/confession sound and a sibling visual treatment. Do not turn this into a generic production-completion dashboard.
 
 Repository: `NikichMods/KeepersAlerts`
 Target runtime: Graveyard Keeper 1.407 on PC with BepInEx.
@@ -43,7 +43,7 @@ The mod is informational. Preserve host mechanics:
 - do not duplicate confession RNG/probability logic;
 - observe native resulting availability state;
 - remain compatible with stock behavior and PrayerClarity: Rebalanced;
-- do not alter corpse delivery mechanics merely to drive UI;
+- do not alter corpse delivery mechanics merely to drive UI; the accepted presentation-only exception is the unscaled time basis for the existing stock 0.5 + 1.0 + 0.5 second corpse/confession transient lifecycle;
 - do not invent mirrored persistent state when canonical game state can be observed safely.
 
 Prefer Graveyard Keeper's native visual/audio language and lifecycle, but do not treat suspected hooks, prefabs or resources as requirements until verified.
