@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Emit;
 using BepInEx;
 using HarmonyLib;
 using UnityEngine;
@@ -15,7 +16,7 @@ namespace KeepersAlerts
     {
         public const string PluginGuid = "nikichmods.keepersalerts";
         public const string PluginName = "Keeper's Alerts";
-        public const string PluginVersion = "0.1.4";
+        public const string PluginVersion = "0.1.5";
 
         private static readonly Guid SupportedGameMvid =
             new Guid("6f50b8e7-156b-49ac-bbe8-7505894b2364");
@@ -300,6 +301,21 @@ namespace KeepersAlerts
                 AllInstance,
                 Type.EmptyTypes);
 
+            MethodInfo runAppearCoroutine = RequireMethod(
+                _newBodyArrivedGuiType,
+                "RunAppearCoroutine",
+                AllInstance,
+                Type.EmptyTypes);
+
+            MethodInfo runAppearMoveNext =
+                AccessTools.EnumeratorMoveNext(runAppearCoroutine);
+
+            if (runAppearMoveNext == null)
+            {
+                throw new MissingMethodException(
+                    "NewBodyArrivedGUI.RunAppearCoroutine state-machine MoveNext");
+            }
+
             _harmony.Patch(
                 redrawBubble,
                 postfix: new HarmonyMethod(
@@ -341,6 +357,136 @@ namespace KeepersAlerts
                     typeof(Plugin).GetMethod(
                         nameof(HudOpenPostfix),
                         BindingFlags.Static | BindingFlags.NonPublic)));
+
+            _harmony.Patch(
+                runAppearMoveNext,
+                transpiler: new HarmonyMethod(
+                    typeof(Plugin).GetMethod(
+                        nameof(NewBodyArrivedTimingTranspiler),
+                        BindingFlags.Static | BindingFlags.NonPublic)));
+        }
+
+        private static IEnumerable<CodeInstruction>
+            NewBodyArrivedTimingTranspiler(
+                IEnumerable<CodeInstruction> instructions)
+        {
+            ConstructorInfo waitForSecondsCtor =
+                AccessTools.Constructor(
+                    typeof(WaitForSeconds),
+                    new[] { typeof(float) });
+
+            ConstructorInfo waitForSecondsRealtimeCtor =
+                AccessTools.Constructor(
+                    typeof(WaitForSecondsRealtime),
+                    new[] { typeof(float) });
+
+            if (waitForSecondsCtor == null
+                || waitForSecondsRealtimeCtor == null)
+            {
+                throw new MissingMethodException(
+                    "Unity wait instruction constructor required for real-time transient timing.");
+            }
+
+            Type tweenSettingsExtensions =
+                AccessTools.TypeByName(
+                    "DG.Tweening.TweenSettingsExtensions");
+
+            Type tweenerType =
+                AccessTools.TypeByName(
+                    "DG.Tweening.Tweener");
+
+            if (tweenSettingsExtensions == null
+                || tweenerType == null)
+            {
+                throw new TypeLoadException(
+                    "DOTween types required for real-time transient timing are unavailable.");
+            }
+
+            MethodInfo setUpdateDefinition =
+                tweenSettingsExtensions
+                    .GetMethods(AllStatic)
+                    .SingleOrDefault(m =>
+                    {
+                        if (!string.Equals(
+                            m.Name,
+                            "SetUpdate",
+                            StringComparison.Ordinal)
+                            || !m.IsGenericMethodDefinition)
+                        {
+                            return false;
+                        }
+
+                        ParameterInfo[] p = m.GetParameters();
+                        return p.Length == 2
+                            && p[1].ParameterType == typeof(bool);
+                    });
+
+            if (setUpdateDefinition == null)
+            {
+                throw new MissingMethodException(
+                    "DG.Tweening.TweenSettingsExtensions.SetUpdate<T>(T, bool)");
+            }
+
+            MethodInfo setUpdate =
+                setUpdateDefinition.MakeGenericMethod(tweenerType);
+
+            int tweenCount = 0;
+            int waitCount = 0;
+
+            foreach (CodeInstruction instruction in instructions)
+            {
+                MethodInfo calledMethod =
+                    instruction.operand as MethodInfo;
+
+                if (calledMethod != null
+                    && string.Equals(
+                        calledMethod.Name,
+                        "DOLocalMoveY",
+                        StringComparison.Ordinal)
+                    && calledMethod.DeclaringType != null
+                    && string.Equals(
+                        calledMethod.DeclaringType.FullName,
+                        "DG.Tweening.ShortcutExtensions",
+                        StringComparison.Ordinal))
+                {
+                    yield return instruction;
+                    yield return new CodeInstruction(
+                        OpCodes.Ldc_I4_1);
+                    yield return new CodeInstruction(
+                        OpCodes.Call,
+                        setUpdate);
+                    tweenCount++;
+                    continue;
+                }
+
+                if (instruction.opcode == OpCodes.Newobj
+                    && Equals(
+                        instruction.operand,
+                        waitForSecondsCtor))
+                {
+                    CodeInstruction replacement =
+                        new CodeInstruction(instruction);
+
+                    replacement.operand =
+                        waitForSecondsRealtimeCtor;
+
+                    yield return replacement;
+                    waitCount++;
+                    continue;
+                }
+
+                yield return instruction;
+            }
+
+            if (tweenCount != 2 || waitCount != 1)
+            {
+                throw new InvalidOperationException(
+                    "Unexpected NewBodyArrivedGUI timing shape: DOLocalMoveY="
+                    + tweenCount
+                    + ", WaitForSeconds="
+                    + waitCount
+                    + "; expected 2 and 1.");
+            }
         }
 
         private static void RedrawBubblePostfix(object __instance)
