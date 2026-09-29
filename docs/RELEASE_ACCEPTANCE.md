@@ -1,7 +1,7 @@
-# Release Acceptance — 0.1.4
+# Release Acceptance — 0.1.5
 
 **Target:** Graveyard Keeper 1.407 / BepInEx 5  
-**Status:** runtime behavior accepted; stable promotion pending one display-scale smoke test
+**Status:** baseline 0.1.4 behavior accepted; 0.1.5 pending transient-timing runtime acceptance and final display-scale smoke test
 
 ## Accepted player-facing behavior
 
@@ -26,6 +26,17 @@ Final confession transient calibration:
 - stock visible Y = 80;
 - stock background opacity retained.
 
+## Candidate 0.1.5 timing change
+
+0.1.5 preserves the stock 0.5 / 1.0 / 0.5 second transient profile but changes the `NewBodyArrivedGUI` lifecycle to use real/unscaled time.
+
+Pending runtime acceptance:
+- normal-speed corpse/confession transient remains visually unchanged and about two seconds end-to-end;
+- at `Time.timeScale >= 10`, the transient still remains about two wall-clock seconds instead of collapsing;
+- no new Keeper's Alerts/runtime errors are present in the shared BepInEx log.
+
+The exact 0.1.5 CI artifact identity will be recorded after the candidate build succeeds.
+
 ## Remaining pre-release verification
 
 One targeted visual smoke test remains because the persistent indicators were calibrated after moving to the live `HUD.bar_energy` transform at **2560x1440 / HUD scale 1.1**.
@@ -49,9 +60,9 @@ The final architecture:
 - fails closed on an unsupported host assembly;
 - contains no research console or probe code in the production assembly.
 
-## Accepted artifact identity
+## Accepted baseline artifact identity
 
-Production candidate 0.1.4:
+Previously accepted production candidate 0.1.4 (baseline for 0.1.5):
 
 - build source head: `2b18eefcf999ca0f9cd118a19a82d74a249f122c`;
 - GitHub Actions run: `36409865438`;
