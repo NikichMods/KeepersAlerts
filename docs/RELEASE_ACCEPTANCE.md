@@ -1,7 +1,7 @@
 # Release Acceptance — 0.1.4
 
 **Target:** Graveyard Keeper 1.407 / BepInEx 5  
-**Status:** accepted for public release
+**Status:** runtime behavior accepted; stable promotion pending one display-scale smoke test
 
 ## Accepted player-facing behavior
 
@@ -25,6 +25,18 @@ Final confession transient calibration:
 - scale = 1.67;
 - stock visible Y = 80;
 - stock background opacity retained.
+
+## Remaining pre-release verification
+
+One targeted visual smoke test remains because the persistent indicators were calibrated after moving to the live `HUD.bar_energy` transform at **2560x1440 / HUD scale 1.1**.
+
+Test one materially different supported layout, for example **1920x1080 / HUD scale 1.0**, and confirm:
+
+- corpse-only remains immediately to the right of the energy bar;
+- confession-only occupies the same first slot;
+- both-active remains compact, adjacent and unclipped.
+
+This is a downstream layout/responsiveness check only. The already accepted corpse/confession mechanics, transition behavior, audio, transient popup and save/load cases do not need to be replayed.
 
 ## Architecture acceptance
 
