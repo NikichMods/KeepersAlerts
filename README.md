@@ -4,7 +4,7 @@ A small, vanilla-friendly notification mod for **Graveyard Keeper**.
 
 Keeper's Alerts covers two remote states that are easy to miss without travelling back to check them:
 
-- **A corpse is waiting** — the game's normal donkey arrival sound and popup stay untouched; Keeper's Alerts adds a small persistent body icon while a loose corpse remains in the delivery area.
+- **A corpse is waiting** — the game's normal donkey arrival trigger, sound and visual treatment are preserved; Keeper's Alerts adds a small persistent body icon while a loose corpse remains in the delivery area. The transient is kept readable for the same two real-time seconds during accelerated sleep/meditation.
 - **A confession is available** — a short native bell cue and stock-style popup appear when the first confession becomes available, then a small prayer icon remains on the HUD until no confession is waiting.
 
 The persistent indicators sit immediately to the right of the energy bar and pack together automatically. If only one alert is active, it occupies the first slot.
@@ -36,6 +36,8 @@ The current release was tested on the Windows/Steam build of Graveyard Keeper 1.
 3. Start the game.
 
 There are no configuration options.
+
+Transient corpse/confession notifications use real time rather than accelerated game time, so their stock 0.5 s appear + 1.0 s hold + 0.5 s hide profile remains readable during sleep and meditation.
 
 ## Uninstalling
 

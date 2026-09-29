@@ -1,14 +1,14 @@
 # Architecture
 
 **Target:** Graveyard Keeper 1.407 / BepInEx 5  
-**Production version:** 0.1.5 candidate
+**Production version:** 1.0.0
 
 Keeper's Alerts is intentionally a thin observer/presentation layer. It derives current state from Graveyard Keeper and uses native UI/audio systems without changing the mechanics that create those states.
 
 ## Product invariants
 
 The mod must preserve:
-- donkey schedule, delivery, physics, pickup, morgue capacity and the stock corpse-arrival cue;
+- donkey schedule, delivery, physics, pickup, morgue capacity, stock corpse-arrival trigger/audio/geometry/easing;
 - confession RNG/probability, including PrayerClarity: Rebalanced changes to the effective probability;
 - confession rewards, daily reset and native interaction behavior;
 - save/load semantics;
@@ -108,7 +108,7 @@ Only the cloned body image is hidden. A separate prayer label using the native `
 - Y = 14.06;
 - scale = 1.67.
 
-The stock corpse-arrival instance is never modified.
+The stock corpse-arrival instance is not cloned/replaced or content-mutated; the shared `NewBodyArrivedGUI` lifecycle is patched only to use unscaled time.
 
 If the stock corpse popup and confession popup happen to start at the same instant, they may overlap. Both cues remain functional. This rare overlap is intentionally accepted instead of adding a notification queue for a negligible case.
 

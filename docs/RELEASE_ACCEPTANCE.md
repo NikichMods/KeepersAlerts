@@ -1,11 +1,11 @@
-# Release Acceptance — 0.1.5
+# Release Acceptance — 1.0.0
 
 **Target:** Graveyard Keeper 1.407 / BepInEx 5  
-**Status:** baseline 0.1.4 behavior accepted; 0.1.5 pending transient-timing runtime acceptance and final display-scale smoke test
+**Status:** **ACCEPTED** — runtime behavior and final HUD responsiveness accepted; stable build/publication bookkeeping follows this record.
 
 ## Accepted player-facing behavior
 
-Runtime/perceptual testing established:
+Runtime and perceptual testing established:
 
 - existing waiting state after load restores persistent HUD state without a false arrival cue;
 - corpse-only, confession-only and both-active persistent states display correctly;
@@ -14,10 +14,11 @@ Runtime/perceptual testing established:
 - confession false -> true produces the selected short `bell_single` cue, a stock-style `+ [prayer]` transient and the persistent prayer indicator;
 - clearing the native confession state removes the persistent prayer indicator;
 - corpse waiting state appears/clears through the verified loose-Body lifecycle;
-- the stock donkey sound and stock corpse-arrival popup remain untouched;
+- the stock donkey arrival trigger, sound, popup content, geometry and easing are preserved;
 - the confession popup preserves the stock panel/background/animation and visually reads as a sibling of the corpse popup;
 - simultaneous corpse/confession transient playback can overlap but both visuals and both sounds remain functional; this rare case is accepted without additional queueing;
-- the previous research-console startup presentation warning is absent from the accepted runtime log.
+- stock corpse and Keeper's Alerts confession transients retain the serialized 0.5 s appear + 1.0 s hold + 0.5 s hide profile in wall-clock time, including while game time is accelerated;
+- no Keeper's Alerts warning/error was observed in the final shared BepInEx runtime log.
 
 Final confession transient calibration:
 - prayer icon X = 8.89;
@@ -26,28 +27,28 @@ Final confession transient calibration:
 - stock visible Y = 80;
 - stock background opacity retained.
 
-## Candidate 0.1.5 timing change
+## Final runtime acceptance
 
-0.1.5 preserves the stock 0.5 / 1.0 / 0.5 second transient profile but changes the `NewBodyArrivedGUI` lifecycle to use real/unscaled time.
+The accepted 0.1.5 behavior candidate was tested before 1.0.0 promotion.
 
-Pending runtime acceptance:
-- normal-speed corpse/confession transient remains visually unchanged and about two seconds end-to-end;
-- at `Time.timeScale >= 10`, the transient still remains about two wall-clock seconds instead of collapsing;
-- no new Keeper's Alerts/runtime errors are present in the shared BepInEx log.
+The user explicitly accepted:
+- accelerated-time notification duration: correct/readable rather than compressed;
+- final HUD smoke test at **1920x1080**: corpse-only, confession-only and both-active layouts all appeared immediately to the right of the energy bar;
+- no overlap, clipping or layout issue in that materially different resolution;
+- no sound issue.
 
-The exact 0.1.5 CI artifact identity will be recorded after the candidate build succeeds.
+The final runtime log confirms Keeper's Alerts 0.1.5 loaded on the verified Graveyard Keeper 1.407 host and completed its initial silent resync without a Keeper's Alerts warning/error.
 
-## Remaining pre-release verification
+## 1.0.0 promotion rule
 
-One targeted visual smoke test remains because the persistent indicators were calibrated after moving to the live `HUD.bar_energy` transform at **2560x1440 / HUD scale 1.1**.
+1.0.0 is a release-number promotion of the accepted 0.1.5 runtime behavior.
 
-Test one materially different supported layout, for example **1920x1080 / HUD scale 1.0**, and confirm:
+Allowed release-only changes:
+- plugin/assembly/file version metadata from 0.1.5 to 1.0.0;
+- public release documentation and bookkeeping;
+- no runtime logic, constants, seams, assets or behavior changes.
 
-- corpse-only remains immediately to the right of the energy bar;
-- confession-only occupies the same first slot;
-- both-active remains compact, adjacent and unclipped.
-
-This is a downstream layout/responsiveness check only. The already accepted corpse/confession mechanics, transition behavior, audio, transient popup and save/load cases do not need to be replayed.
+Runtime re-acceptance is not required if this constraint is preserved and CI builds cleanly.
 
 ## Architecture acceptance
 
@@ -55,26 +56,34 @@ The final architecture:
 - observes host-owned state rather than duplicating mechanics;
 - adds no save data;
 - uses event-driven hooks rather than recurring polling;
-- leaves stock corpse presentation untouched;
-- uses private HUD/transient objects only;
+- preserves the stock corpse-arrival trigger/content/audio/geometry/easing while making its transient timing unscaled;
+- uses private HUD/confession-transient objects only;
 - fails closed on an unsupported host assembly;
 - contains no research console or probe code in the production assembly.
 
-## Accepted baseline artifact identity
+## Accepted runtime baseline identity
 
-Previously accepted production candidate 0.1.4 (baseline for 0.1.5):
+Accepted behavior candidate 0.1.5:
 
-- build source head: `2b18eefcf999ca0f9cd118a19a82d74a249f122c`;
-- GitHub Actions run: `36409865438`;
-- job: `108887262025`;
-- artifact ID: `10964285252`;
-- candidate artifact ZIP SHA-256: `248f625da0deb84694150a88ec545289c45aa026142ea7b5ac0c9a547a34fca6`;
-- DLL size: `21,504 bytes`;
-- DLL SHA-256: `f4736b10a9373fd6ef6c9319a4fef255579f7fd415faf53bbf381f447bf8d86d`;
+- exact source head: `168098f32e05e829f3f3ad4ed7fdaaca0d9bb47b`;
+- GitHub Actions run: `36625632889`;
+- artifact ID: `11061005446`;
+- candidate artifact ZIP SHA-256: `286fd94e68864649eda7b1840536a8be4844b26b760e2660c7037b100dfb91d8`;
+- DLL size: `26,112 bytes`;
+- DLL SHA-256: `f88373ab5040450cd9f85a32f6c6b538eab93690144ed225c668869182b34fbb`;
 - build result: 0 warnings / 0 errors.
 
-For stable distribution, the exact accepted DLL bytes may be renamed from the candidate filename `KeepersAlerts.0.1.4.dll` to the canonical installed filename `KeepersAlerts.dll`. The SHA-256 must remain unchanged.
+## Stable 1.0.0 artifact identity
+
+Recorded after the exact 1.0.0 release-head CI build and publication.
 
 ## Distribution boundary
 
-The release package must contain the production plugin only. Research probes and `Keeper's Alerts Runtime Test Console` are not release payloads.
+The stable release package contains the production plugin only.
+
+Do not ship:
+- research probes;
+- `Keeper's Alerts Runtime Test Console`;
+- host assemblies, decompiled host source, extracted game assets/audio, or dependency binaries.
+
+The canonical installed filename is `KeepersAlerts.dll`.
